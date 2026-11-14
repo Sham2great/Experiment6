@@ -94,7 +94,8 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
  story.innerHTML=`
   <div class="story-sky-glow"></div>
   <div class="story-landscape"><i class="story-mountain m-one"></i><i class="story-mountain m-two"></i><i class="story-pine p-one"></i><i class="story-pine p-two"></i><i class="story-lamp"></i></div>
-  <div class="story-character" aria-hidden="true"><i class="anto-hat"></i><i class="anto-head"><b></b></i><i class="anto-scarf"></i><i class="anto-coat"></i><i class="anto-arm"></i><i class="anto-leg leg-one"></i><i class="anto-leg leg-two"></i></div>
+  <div class="story-character" aria-hidden="true"><span class="anto-name-tag">ANTO</span><i class="anto-hair"></i><i class="anto-hat"></i><i class="anto-head"><b></b></i><i class="anto-scarf"></i><i class="anto-coat"></i><i class="anto-arm"></i><i class="anto-leg leg-one"></i><i class="anto-leg leg-two"></i></div>
+  <div class="story-cat" aria-hidden="true"><i class="cat-body"></i><i class="cat-head"><b></b></i><i class="cat-ear cat-ear-one"></i><i class="cat-ear cat-ear-two"></i><i class="cat-tail"></i><i class="cat-hat"></i><i class="cat-hat-trim"></i></div>
   <div class="story-gifts" aria-hidden="true"><i>🎁</i><i>🎁</i><i>🎁</i></div>
   <div class="story-copy"><small> A LITTLE CHRISTMAS STORY </small><h2 id="storyLine">Christmas was almost here…</h2><p id="storySubline">And Anto could hardly wait.</p></div>
   <button class="story-skip" type="button">SKIP STORY ↗</button>
