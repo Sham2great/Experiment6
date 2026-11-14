@@ -19,7 +19,12 @@ function switchToCelebrationMusic(){
 }
 startCurrentMusic();
 document.addEventListener('pointerdown',e=>{if(e.target.closest('#soundBtn'))return;if(musicEnabled&&currentMusic.paused)startCurrentMusic()});
-window.addEventListener('winter-gift-found',e=>{if(Number(e.detail?.count)>=6)switchToCelebrationMusic()});
+window.addEventListener('winter-gift-found',e=>{
+ if(Number(e.detail?.count)>=6){
+  switchToCelebrationMusic();
+  document.body.classList.remove('gift-hunt-active');
+ }
+});
 
 function updateCountdown(){
  const now=new Date();
@@ -129,7 +134,10 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
  companion.addEventListener('click',speak);
  window.addEventListener('world-interact',e=>{if(e.detail?.place==='cabin'){setTimeout(()=>{bubble.querySelector('span').textContent='This cabin feels like the perfect place to make a memory.';bubble.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),4800)},150)}});
  window.addEventListener('winter-gift-found',()=>{found=Math.min(6,found+1);if(found===6){bubble.querySelector('span').textContent='YOU DID IT! All the presents are home. Go see the wishing tree!';bubble.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),7000)}});
- document.getElementById('enterWorld')?.addEventListener('click',()=>setTimeout(speak,1800));
+ document.getElementById('enterWorld')?.addEventListener('click',()=>{
+ document.body.classList.add('gift-hunt-active');
+ setTimeout(speak,1800);
+});
 })();
 
 
