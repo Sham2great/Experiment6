@@ -1,70 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05070d" />
-  <meta name="description" content="OTHERWORLD — an interactive journey beyond the edge of reality." />
-  <title>OTHERWORLD — Beyond the Known</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
-  <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
-  </script>
-  <script type="module" src="./app.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071522">
+<meta name="description" content="A little Christmas world inside a snowglobe."><title>The North Pole Snowglobe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div id="scene" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
-  <div class="vignette" aria-hidden="true"></div>
-
-  <header class="topbar">
-    <a class="wordmark" href="#" aria-label="Otherworld home"><span class="mark">O</span><span>OTHERWORLD</span></a>
-    <div class="top-meta"><span class="status-dot"></span><span>REALITY ENGINE <b>ONLINE</b></span></div>
-    <button class="sound-toggle" id="soundToggle" aria-label="Toggle ambient sound"><span class="sound-icon">♪</span><span id="soundLabel">SOUND OFF</span></button>
-  </header>
-
-  <main>
-    <section class="intro" id="intro">
-      <div class="eyebrow"><span class="eyebrow-line"></span> A JOURNEY BEYOND THE KNOWN</div>
-      <h1>THERE IS<br><em>MORE</em> TO REALITY.</h1>
-      <p class="intro-copy">Somewhere between what is and what could be,<br class="desktop-only"> a door has been waiting for you.</p>
-      <button class="primary-button" id="beginButton"><span>INITIALIZE SEQUENCE</span><span class="button-arrow">↗</span></button>
-      <div class="scroll-note"><span class="scroll-line"></span> SCROLL TO DESCEND</div>
-    </section>
-
-    <section class="machine-panel" id="machinePanel" aria-live="polite">
-      <div class="panel-top"><span>01 / THE THRESHOLD</span><span class="panel-status"><i></i> AWAITING INPUT</span></div>
-      <div class="machine-copy">
-        <p class="eyebrow">UNKNOWN OBJECT DETECTED</p>
-        <h2>The universe<br>is <em>listening.</em></h2>
-        <p class="body-copy">An ancient mechanism rests at the centre of this place. Its purpose is unclear. Its energy is not.</p>
-        <button class="text-button" id="activateButton">AWAKEN THE MACHINE <span>→</span></button>
-      </div>
-      <div class="machine-hint">DRAG TO ROTATE <span>·</span> SCROLL TO APPROACH</div>
-    </section>
-
-    <section class="world-panel" id="worldPanel">
-      <div class="world-heading">
-        <div><p class="eyebrow">THE GATEWAY IS OPEN</p><h2>CHOOSE YOUR<br><em>REALITY.</em></h2></div>
-        <p class="world-intro">Five worlds. Five different truths.<br>None of them are quite what they seem.</p>
-      </div>
-      <div class="world-grid">
-        <button class="world-card active" data-world="eden"><span class="world-number">01</span><span class="world-name">EDEN</span><span class="world-desc">Where life refuses to be ordinary.</span><span class="world-enter">ENTER WORLD ↗</span></button>
-        <button class="world-card" data-world="inversion"><span class="world-number">02</span><span class="world-name">INVERSION</span><span class="world-desc">Where gravity is only a suggestion.</span><span class="world-enter">ENTER WORLD ↗</span></button>
-        <button class="world-card" data-world="afterlight"><span class="world-number">03</span><span class="world-name">AFTERLIGHT</span><span class="world-desc">A city that remembers everything.</span><span class="world-enter">ENTER WORLD ↗</span></button>
-        <button class="world-card" data-world="resonance"><span class="world-number">04</span><span class="world-name">RESONANCE</span><span class="world-desc">A place shaped by invisible things.</span><span class="world-enter">ENTER WORLD ↗</span></button>
-        <button class="world-card" data-world="paradox"><span class="world-number">05</span><span class="world-name">PARADOX</span><span class="world-desc">Nothing here agrees with itself.</span><span class="world-enter">ENTER WORLD ↗</span></button>
-      </div>
-      <div class="world-footer"><span id="worldReadout">CURRENT DESTINATION: EDEN</span><span>REALITY SHARD <b>◆</b> 01/05</span></div>
-    </section>
-  </main>
-
-  <div class="center-reticle" aria-hidden="true"><span></span><span></span></div>
-  <div class="loader" id="loader"><div class="loader-mark">O</div><div class="loader-track"><span></span></div><p>CALIBRATING REALITY</p></div>
-  <div class="toast" id="toast" role="status"></div>
-  <footer class="footer"><span>© OTHERWORLD / EXPERIMENT 06</span><span>YOU WERE NEVER MEANT TO STAY IN ONE WORLD.</span></footer>
-</body>
-</html>
+<div class="aurora" id="aurora"></div><canvas id="world" aria-label="Interactive snowy North Pole village snowglobe"></canvas>
+<div class="shade"></div>
+<header class="top"><a class="brand" href="#"><span class="brand-star">✳</span><span>THE NORTH POLE<br><small>SNOWGLOBE</small></span></a><div class="top-right"><span class="live"><i></i> NORTH POLE • LIVE</span><button class="icon-btn" id="soundBtn" aria-label="Toggle fireplace sound">♫ <span>Sound off</span></button></div></header>
+<main>
+<section class="hero"><p class="eyebrow">✦ A LITTLE CHRISTMAS MAGIC ✦</p><h1>Christmas is<br><em>in the air.</em></h1><p class="sub">A tiny world of wonder, waiting for you to shake things up.</p><div class="countdown"><div class="count-label">THE BIG DAY ARRIVES IN</div><div class="digits"><div><strong id="days">00</strong><span>DAYS</span></div><b>:</b><div><strong id="hours">00</strong><span>HOURS</span></div><b>:</b><div><strong id="minutes">00</strong><span>MINUTES</span></div><b>:</b><div><strong id="seconds">00</strong><span>SECONDS</span></div></div></div></section>
+<div class="scene-hint"><span class="mouse">↔</span> DRAG TO TURN <span>•</span> SHAKE FOR SNOW</div>
+<div class="controls"><button id="shakeBtn">❄ <span>Shake globe</span></button><button id="modeBtn">☾ <span>Night mode</span></button><button id="auroraBtn">✧ <span>Aurora on</span></button></div>
+<section class="landmarks" aria-label="Explore the village"><button data-place="cabin"><span>⌂</span><b>THE CABIN</b><small>Warm wishes inside</small></button><button data-place="workshop"><span>⚒</span><b>TOY WORKSHOP</b><small>Made with magic</small></button><button data-place="tree"><span>✦</span><b>CHRISTMAS TREE</b><small>Make a little wish</small></button></section>
+</main>
+<footer><span>MADE WITH A LITTLE EXTRA MAGIC</span><button id="postcardBtn">MAKE A HOLIDAY POSTCARD ↗</button></footer>
+<div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="close" id="closeModal" aria-label="Close">×</button><div id="modalContent"></div></section></div>
+<script src="./app.js"></script>
+</body></html>
