@@ -227,11 +227,35 @@ function collectGift(g){
  if(giftsFound===6){beginTreeFinale();const q=document.querySelector('#giftQuest span');if(q)q.textContent='✦ DELIVERY COMPLETE';const hint=document.getElementById('sceneHint');if(hint)hint.textContent='ALL SIX PRESENTS DELIVERED — MERRY CHRISTMAS!'}
 }
 
-// Build a friendly low-poly character from actual 3D meshes
-function character(coatColor,hatColor,scale=1){
- const root=new THREE.Group(),coat=mat(coatColor),hat=mat(hatColor),skin=mat(0xe6b99a),boots=mat(0x352d32),scarf=mat(0xf1d18e);
+// Distinct village characters: different silhouettes, hair, outfits and readable name tags.
+function nameTag(label){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+ const ctx=canvas.getContext('2d');ctx.clearRect(0,0,512,128);
+ ctx.fillStyle='rgba(9,25,37,.82)';ctx.beginPath();ctx.roundRect(18,14,476,98,28);ctx.fill();
+ ctx.strokeStyle='rgba(235,211,157,.9)';ctx.lineWidth=4;ctx.stroke();
+ ctx.fillStyle='#f4e8c9';ctx.font='bold 48px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,256,65);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+ sprite.scale.set(2.25,.56,1);sprite.position.set(0,3.35,0);sprite.userData.nameTag=true;return sprite;
+}
+function character(coatColor,hatColor,scale=1,style={}){
+ const root=new THREE.Group(),coat=mat(coatColor),hat=mat(hatColor),skin=mat(style.skin||0xe6b99a),boots=mat(0x352d32),scarf=mat(style.scarf||0xf1d18e),hair=mat(style.hair||0x49352f);
  const body=new THREE.Group();root.add(body);
- cylinder(body,0,1.08,0,.42,.48,.95,coat);sphere(body,0,1.72,0,.39,skin);sphere(body,0,2.09,0,.43,hat);cone(body,0,2.52,0,.33,.58,hat);sphere(body,0,2.83,0,.12,cream);
+ cylinder(body,0,1.08,0,.42,.48,.95,coat);
+ if(style.gender==='female'){
+  const skirt=new THREE.Mesh(new THREE.CylinderGeometry(.27,.57,.62,9),coat);skirt.position.set(0,.84,0);body.add(skirt);
+  sphere(body,0,1.98,-.06,.34,hair);sphere(body,-.31,1.78,0,.16,hair);sphere(body,.31,1.78,0,.16,hair);
+ }else{
+  sphere(body,0,1.98,-.08,.34,hair);
+  sphere(body,0,1.72,0,.39,skin);
+ }
+ sphere(body,0,1.72,0,.39,skin);
+ // Soft winter cap instead of the identical pointed gnome hat.
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.43,12,9,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
+ cylinder(body,0,1.96,0,.43,.43,.12,hat);
+ if(style.gender==='female'&&style.hairLong){
+  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.52,4,8),hair);back.position.set(0,1.55,-.29);body.add(back);
+ }
  box(body,0,1.58,.34,.7,.16,.12,scarf);
  const legs=[],arms=[];
  for(const side of [-1,1]){
@@ -242,11 +266,32 @@ function character(coatColor,hatColor,scale=1){
   sphere(armPivot,0,-.53,.02,.13,skin);arms.push(armPivot);
   sphere(body,side*.14,1.79,.34,.045,boots);
  }
+ if(style.name)root.add(nameTag(style.name));
  root.userData.body=body;root.userData.legs=legs;root.userData.arms=arms;root.scale.setScalar(scale);return root;
 }
-const player=character(0x315c71,0x8f4149,1.05);player.position.set(0,0,12);scene.add(player);
-const friends=[{obj:character(0x9b5147,0x315c71,.82),center:new THREE.Vector3(-11,0,-7),radius:2.4,speed:.48,phase:0},{obj:character(0x477a65,0x9b5147,.8),center:new THREE.Vector3(11,0,-12),radius:2.5,speed:.4,phase:2},{obj:character(0x78608c,0xb47a38,.75),center:new THREE.Vector3(3,0,-19),radius:2.2,speed:.55,phase:4}];
+const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'male',hair:0x342a28,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
+const friends=[
+ {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0x4b2e27,hairLong:true,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
+ {obj:character(0x477a65,0x9b5147,.8,{name:'ELI',gender:'male',hair:0x302923,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
+ {obj:character(0x78608c,0xb47a38,.75,{name:'MILA',gender:'female',hair:0x8b5836,hairLong:true,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4}
+];
 friends.forEach(f=>scene.add(f.obj));
+// Anto's little snow cat, with a bobbing tail and tiny ears.
+function makeAntoCat(){
+ const cat=new THREE.Group(),fur=mat(0xe9e3d6),dark=mat(0x4b4140),pink=mat(0xc98786);
+ sphere(cat,0,.34,0,.34,fur);sphere(cat,0,.68,.12,.28,fur);
+ for(const side of [-1,1]){
+  const ear=new THREE.Mesh(new THREE.ConeGeometry(.12,.28,5),fur);ear.position.set(side*.18,.94,.1);ear.rotation.z=side*-.22;cat.add(ear);
+  sphere(cat,side*.105,.7,.365,.035,dark);
+ }
+ sphere(cat,0,.61,.39,.045,pink);
+ const tail=new THREE.Mesh(new THREE.TorusGeometry(.22,.065,6,12,Math.PI*1.55),fur);tail.position.set(-.28,.42,-.12);tail.rotation.set(Math.PI/2,0,.7);cat.add(tail);
+ for(const side of [-1,1]){const paw=cylinder(cat,side*.17,.12,.02,.09,.1,.23,fur);paw.rotation.z=side*.08}
+ cat.userData.tail=tail;return cat;
+}
+const antoCat=makeAntoCat();scene.add(antoCat);
+function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+pad&&Math.abs(z-o.z)<o.hz+pad)}
+
 const snowParticles=new THREE.BufferGeometry(),count=mobileDevice?130:240,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
 
 let keys={},yaw=0,pitch=.18,drag=false,lastX=0,lastY=0,started=false,cinema=true,clock=new THREE.Clock(),cameraMode='follow',cameraTarget=new THREE.Vector3(0,1,0),introStart=performance.now();
@@ -270,7 +315,7 @@ document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene
 let lastRender=0;function animate(now=0){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
 hiddenGifts.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*.8;g.position.y=g.userData.baseY+Math.sin(t*2.1+i)*.1;if(started&&player.position.distanceTo(g.position)<1.45)collectGift(g)});
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
-if(!treeFinale.active){friends.forEach((f,i)=>{const a=t*f.speed+f.phase;f.obj.position.set(f.center.x+Math.cos(a)*f.radius,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,f.center.z+Math.sin(a)*f.radius);f.obj.rotation.y=-a;const gait=t*f.speed*f.radius*5+i;f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(gait+j*Math.PI)*.58);f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);f.obj.userData.body.position.y=Math.abs(Math.sin(gait*2))*.035});}
+if(!treeFinale.active){friends.forEach((f,i)=>{const a=t*f.speed+f.phase,x=f.center.x+Math.cos(a)*f.radius,z=f.center.z+Math.sin(a)*f.radius;if(!hitsHouse(x,z,.62))f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=-a;const gait=t*f.speed*f.radius*5+i;f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(gait+j*Math.PI)*.58);f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);f.obj.userData.body.position.y=Math.abs(Math.sin(gait*2))*.035});const ant=friends[0].obj;const catX=ant.position.x-.9,catZ=ant.position.z+.55;if(!hitsHouse(catX,catZ,.25)){antoCat.position.set(catX,.02+Math.abs(Math.sin(t*4))*.035,catZ);antoCat.rotation.y=-Math.sin(t*.34)*.25;antoCat.userData.tail.rotation.z=Math.sin(t*4)*.2;}}
 const moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*13+j*Math.PI)*.62:0);player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*13+j*Math.PI+Math.PI)*.4:0);player.userData.body.position.y=moving?Math.abs(Math.sin(t*13*2))*.045:0;
 if(started&&cameraMode==='follow'){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*5.2),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
 if(cameraMode==='treeFinale'){updateTreeFinale(now)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
