@@ -264,18 +264,21 @@ function character(coatColor,hatColor,scale=1,style={}){
  cylinder(body,0,.61,0,.49,.49,.12,fur);cylinder(body,0,1.53,0,.43,.43,.12,fur);
  box(body,0,1.12,.485,.055,.72,.035,zipper);
  for(let b=0;b<3;b++)sphere(body,.105,1.34-b*.2,.49,.035,zipper);
- sphere(body,0,1.56,.39,.24,fur).scale.set(1,.42,.55);
+ // Keep the face and neckline clean: no beard-shaped collar or facial hair.
  sphere(body,0,1.72,0,.39,skin);
  if(style.hairLong){
   const back=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.66,4,8),hair);back.position.set(0,1.48,-.28);body.add(back);
   for(const side of [-1,1]){const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.52,4,8),hair);lock.position.set(side*.29,1.54,.02);body.add(lock)}
  }else sphere(body,0,1.98,-.08,.34,hair);
- // Eyes and a tiny mouth only; no facial-hair or moustache geometry.
+ // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
- sphere(body,0,1.65,.385,.035,mat(0x9b6260));
  const cap=new THREE.Mesh(new THREE.SphereGeometry(.43,12,9,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
  cylinder(body,0,1.96,0,.43,.43,.12,fur);sphere(body,0,2.38,-.015,.105,fur);
- box(body,0,1.58,.34,.7,.16,.12,scarf);
+ // Rounded scarf wrap and soft hanging end instead of a square neck block.
+ const scarfRing=new THREE.Mesh(new THREE.TorusGeometry(.285,.085,8,20),scarf);
+ scarfRing.rotation.x=Math.PI/2;scarfRing.position.set(0,1.55,0);body.add(scarfRing);
+ const scarfTail=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.34,4,8),scarf);
+ scarfTail.position.set(.19,1.31,.32);scarfTail.rotation.z=-.16;body.add(scarfTail);
  const legs=[],arms=[];
  for(const side of [-1,1]){
   const legPivot=new THREE.Group();legPivot.position.set(side*.2,.68,0);body.add(legPivot);
