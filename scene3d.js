@@ -83,41 +83,44 @@ makeTree(-24,-16,1.4);makeTree(-20,8,1.05);makeTree(23,-19,1.4);makeTree(26,13,1
 const grandTree=makeTree(0,-13,2.25,true);
 
 const treeDecorations=[];
-function clearTreeDecorations(){treeDecorations.forEach(o=>{grandTree.remove(o);o.traverse?.(n=>{if(n.geometry)n.geometry.dispose();if(n.material&&!Array.isArray(n.material)&&n.material!==gold)n.material.dispose()})});treeDecorations.length=0}
+function clearTreeDecorations(){
+ treeDecorations.forEach(o=>{grandTree.remove(o);o.traverse?.(n=>{if(n.geometry)n.geometry.dispose();if(n.material&&!Array.isArray(n.material)&&n.userData.ownedMaterial)n.material.dispose()})});
+ treeDecorations.length=0;
+}
+function treeSurfaceRadius(y){
+ let outer=0;
+ for(let i=0;i<3;i++){const h=1.55-i*.18,base=.9+i*.47-h/2,r=.86-i*.13;if(y>=base&&y<=base+h)outer=Math.max(outer,r*(1-(y-base)/h))}
+ return outer;
+}
 function buildTreeDecoration(type,color,index){
- const material=new THREE.MeshStandardMaterial({color,metalness:.22,roughness:.28,emissive:new THREE.Color(color),emissiveIntensity:.16});
- const y=.72+(index%7)*.22;
- const radius=Math.max(.18,.78-y*.25);
- const angle=index*2.399;
+ const material=new THREE.MeshStandardMaterial({color,metalness:.18,roughness:.3,emissive:new THREE.Color(color),emissiveIntensity:.2});
+ const y=.48+(index%6)*.34,angle=index*2.399,radius=treeSurfaceRadius(y)+.075;
  if(type==='ornament'){
   const g=new THREE.Group();g.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
-  const ball=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),material);g.add(ball);
-  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.055,7),gold);cap.position.y=.12;g.add(cap);
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(.12,12,10),material);ball.userData.ownedMaterial=true;g.add(ball);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.065,8),gold);cap.position.y=.135;g.add(cap);
   treeDecorations.push(g);grandTree.add(g);
  }else if(type==='lights'){
   const g=new THREE.Group();
-  for(let i=0;i<42;i++){const q=i/42,ly=.72+q*1.68,a=i*.72+index*.42,r=Math.max(.12,.78-ly*.25);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.038,6,5),material);bulb.position.set(Math.cos(a)*r,ly,Math.sin(a)*r);g.add(bulb)}
+  for(let i=0;i<64;i++){const q=i/63,ly=.36+q*2.05,a=q*Math.PI*9+index*.5,r=treeSurfaceRadius(ly)+.09;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.045,7,6),material);bulb.position.set(Math.cos(a)*r,ly,Math.sin(a)*r);bulb.userData.ownedMaterial=true;g.add(bulb)}
   treeDecorations.push(g);grandTree.add(g);
  }else if(type==='ribbon'){
-  const points=[];for(let i=0;i<=70;i++){const q=i/70,ly=.7+q*1.72,a=q*Math.PI*8+index*.25,r=Math.max(.1,.8-ly*.25);points.push(new THREE.Vector3(Math.cos(a)*r,ly,Math.sin(a)*r))}
-  const mesh=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),70,.035,5,false),material);treeDecorations.push(mesh);grandTree.add(mesh);
+  const points=[];for(let i=0;i<=100;i++){const q=i/100,ly=.34+q*2.08,a=q*Math.PI*8+index*.25,r=treeSurfaceRadius(ly)+.065;points.push(new THREE.Vector3(Math.cos(a)*r,ly,Math.sin(a)*r))}
+  const mesh=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),100,.045,6,false),material);mesh.userData.ownedMaterial=true;treeDecorations.push(mesh);grandTree.add(mesh);
  }else if(type==='star'){
-  const g=new THREE.Group();g.position.set(0,2.58,0);
-  const star=new THREE.Mesh(new THREE.OctahedronGeometry(.24,1),material);star.scale.set(1,1.25,.3);g.add(star);
-  treeDecorations.push(g);grandTree.add(g);
+  const g=new THREE.Group();g.position.set(0,2.55,0);const star=new THREE.Mesh(new THREE.OctahedronGeometry(.29,1),material);star.scale.set(1,1.3,.38);star.userData.ownedMaterial=true;g.add(star);treeDecorations.push(g);grandTree.add(g);
  }else if(type==='candy'){
-  const g=new THREE.Group();g.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
-  const cane=new THREE.Mesh(new THREE.TorusGeometry(.09,.035,6,12,Math.PI*1.5),cream);cane.rotation.z=Math.PI/2;g.add(cane);
-  for(let j=0;j<3;j++){const stripe=new THREE.Mesh(new THREE.SphereGeometry(.033,6,5),material);stripe.position.set((j-1)*.065,.045,0);g.add(stripe)}
+  const g=new THREE.Group();g.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);const cane=new THREE.Mesh(new THREE.TorusGeometry(.105,.035,7,14,Math.PI*1.5),cream);cane.rotation.z=Math.PI/2;g.add(cane);
+  for(let j=0;j<3;j++){const stripe=new THREE.Mesh(new THREE.SphereGeometry(.034,7,6),material);stripe.position.set((j-1)*.067,.045,0);stripe.userData.ownedMaterial=true;g.add(stripe)}
   treeDecorations.push(g);grandTree.add(g);
- }
+ }else material.dispose();
 }
 function restoreTree(){clearTreeDecorations();let saved=[];try{saved=JSON.parse(localStorage.getItem('twains-tree-decorations')||'[]')}catch(e){}saved.forEach((d,i)=>buildTreeDecoration(d.type,d.color,i))}
 window.decorateTree=(type,color)=>{let saved=[];try{saved=JSON.parse(localStorage.getItem('twains-tree-decorations')||'[]')}catch(e){}if(type==='star')saved=saved.filter(d=>d.type!=='star');saved.push({type,color});localStorage.setItem('twains-tree-decorations',JSON.stringify(saved));restoreTree();return saved.length};
 window.undoTreeDecoration=()=>{let saved=[];try{saved=JSON.parse(localStorage.getItem('twains-tree-decorations')||'[]')}catch(e){}saved.pop();localStorage.setItem('twains-tree-decorations',JSON.stringify(saved));restoreTree();return saved.length};
 window.resetTreeDecorations=()=>{localStorage.removeItem('twains-tree-decorations');restoreTree()};
 restoreTree();
-window.openTreeStudio=()=>{document.getElementById('treeStudio').classList.add('open');document.getElementById('treeStudio').setAttribute('aria-hidden','false');cameraMode='treeStudio';yaw=0;pitch=.15;};
+window.openTreeStudio=()=>{document.getElementById('treeStudio').classList.add('open');document.getElementById('treeStudio').setAttribute('aria-hidden','false');cameraMode='treeStudio';yaw=0;pitch=.15;camera.position.set(0,4.6,-4.2);camera.lookAt(0,3,-13);};
 window.closeTreeStudio=()=>{document.getElementById('treeStudio').classList.remove('open');document.getElementById('treeStudio').setAttribute('aria-hidden','true');cameraMode='follow';};
 
 for(let i=0;i<10;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
@@ -250,7 +253,7 @@ friends.forEach((f,i)=>{const a=t*f.speed+f.phase;f.obj.position.set(f.center.x+
 const moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*13+j*Math.PI)*.62:0);player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*13+j*Math.PI+Math.PI)*.4:0);player.userData.body.position.y=moving?Math.abs(Math.sin(t*13*2))*.045:0;
 if(started&&cameraMode==='follow'){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*5.2),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
 if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
-else if(cameraMode==='treeStudio'){desiredCamera.set(Math.sin(yaw)*13,5.4+pitch*4,-13+Math.cos(yaw)*13);camera.position.lerp(desiredCamera,.07);camera.lookAt(0,3.5,-13)}
+else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
 else{desiredCamera.set(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desiredCamera,1-Math.pow(.001,dt));lookTarget.set(player.position.x,1.5,player.position.z);cameraTarget.lerp(lookTarget,.08);camera.lookAt(cameraTarget)}
 const targetFrame=mobileDevice?1000/30:1000/40;if(now-lastRender>=targetFrame){renderer.render(scene,camera);lastRender=now}}
