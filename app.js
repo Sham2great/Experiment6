@@ -65,13 +65,14 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
  const companion=document.createElement('button');companion.id='winterCompanion';companion.setAttribute('aria-label','Talk to Pip the snow fox');companion.innerHTML='<span class="pip-tail"></span><span class="pip-ear e1"></span><span class="pip-ear e2"></span><span class="pip-face">•ᴗ•</span><span class="pip-scarf"></span><i>✦</i>';
  const bubble=document.createElement('div');bubble.id='pipBubble';bubble.innerHTML='<b>PIP</b><span>Hey, Twain! I have a feeling there are secrets hidden around here...</span>';
  document.body.append(journal,companion,bubble);
+ const showStoryModal=html=>{const box=document.getElementById('modalContent'),back=document.getElementById('modalBackdrop');if(box&&back){box.innerHTML=html;back.classList.add('open')}};
  let found=0;
  const saved=Number(localStorage.getItem('otherworld-gifts-found')||0);
  found=Math.min(6,saved);
  function renderJournal(){
   const chapters=[['01','A WORLD ASLEEP','Enter the winter village and find your way around.','Complete'],['02','THE LOST DELIVERIES','Find all six missing presents scattered through the snow.',found+'/6 presents'],['03','A TREE OF WISHES','Decorate the wishing tree until it feels like yours.','Explore the tree'],['04','THE LAST STAR','A final little surprise waits when every present is home.',''+(found===6?'UNLOCKED':'LOCKED')]];
   const rows=chapters.map((x,i)=>'<div class="journal-row"><span class="journal-number">'+x[0]+'</span><div><b>'+x[1]+'</b><p>'+x[2]+'</p><small>'+x[3]+'</small></div><i>'+(i===1&&found===6||i===3&&found===6?'✦':'◇')+'</i></div>').join('');
-  openModal('<div class="modal-kicker">A RECORD OF YOUR ADVENTURE</div><h2>The winter <em>journal.</em></h2><p>Every little discovery brings this world a little more to life.</p><div class="journal-progress"><span>YOUR CHRISTMAS STORY</span><b>'+found+' / 6</b><div><i style="width:'+(found/6*100)+'%"></i></div></div>'+rows+(found===6?'<div class="journal-unlock">✦ THE FINAL STAR IS AWAKE <p>All six presents are home. Return to the wishing tree for your surprise.</p></div>':''));
+  showStoryModal('<div class="modal-kicker">A RECORD OF YOUR ADVENTURE</div><h2>The winter <em>journal.</em></h2><p>Every little discovery brings this world a little more to life.</p><div class="journal-progress"><span>YOUR CHRISTMAS STORY</span><b>'+found+' / 6</b><div><i style="width:'+(found/6*100)+'%"></i></div></div>'+rows+(found===6?'<div class="journal-unlock">✦ THE FINAL STAR IS AWAKE <p>All six presents are home. Return to the wishing tree for your surprise.</p></div>':''));
  }
  journal.addEventListener('click',renderJournal);
  const lines=['Psst... I saw something sparkle near the trees.','The village gets prettier every time you find a present.','I think the wishing tree has a surprise for you.','If you get lost, just follow the little lights.','You know what makes this place magical? You being here.'];
