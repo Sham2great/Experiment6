@@ -13,7 +13,15 @@ function updateCountdown(){
 updateCountdown();setInterval(updateCountdown,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCountdown()});
 const backdrop=$('modalBackdrop'),content=$('modalContent');
 function openModal(html){content.innerHTML=html;backdrop.classList.add('open')}
+
 function closeModal(){backdrop.classList.remove('open')}
+window.addEventListener('world-interact',e=>{
+ const place=e.detail?.place;
+ if(place==='tree'){window.openTreeStudio?.();return}
+ if(place==='cabin')openModal('<div class="modal-kicker">THE LITTLE CABIN</div><h2>Come in, get cozy.</h2><p>The fire is crackling, the cocoa is warm, and the snow is falling softly outside. Take a moment to rest before exploring again.</p><p>✦ You found a little pocket of Christmas warmth.</p><button class="action" id="cocoa">Make a little wish</button>');
+ if(place==='workshop')openModal('<div class="modal-kicker">THE NORTH POLE WORKSHOP</div><h2>Elf training begins!</h2><p>Catch the falling presents before they hit the snow. Move your sleigh with your finger or mouse.</p><div class="game-area"><canvas id="game" width="420" height="260"></canvas></div><p id="scoreline">Gifts caught: 0 · 20 seconds</p><button class="action" id="startGame">Start game</button>');
+});
+
 $('closeModal').addEventListener('click',closeModal);
 backdrop.addEventListener('click',e=>{if(e.target===backdrop)closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();if(window.closeTreeStudio)window.closeTreeStudio()}});
