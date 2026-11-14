@@ -24,7 +24,7 @@ const snowMat=mat(0xeaf4f5),iceMat=mat(0xa8d1db),wood=mat(0x76503e),roof=mat(0x2
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),mat(0xdde9e8));ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(48,96),mat(0xf5f7f1));floor.rotation.x=-Math.PI/2;floor.position.y=-.08;floor.receiveShadow=true;scene.add(floor);
 function box(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,20,16),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cylinder(parent,x,y,z,r1,r2,h,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=(.8+(i%5)*.29)*size,r=(.66-(i%5)*.08)*size;sphere(g,Math.cos(a)*r,y,Math.sin(a)*r,.055*size,[gold,red,cream][i%3])}}return g}
@@ -72,7 +72,7 @@ restoreTree();
 window.openTreeStudio=()=>{document.getElementById('treeStudio').classList.add('open');document.getElementById('treeStudio').setAttribute('aria-hidden','false');cameraMode='treeStudio';yaw=0;pitch=.15;};
 window.closeTreeStudio=()=>{document.getElementById('treeStudio').classList.remove('open');document.getElementById('treeStudio').setAttribute('aria-hidden','true');cameraMode='follow';};
 
-for(let i=0;i<18;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
+for(let i=0;i<10;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
 // Curving village path
 const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vector3(-2+Math.sin(t*Math.PI*1.45)*8,.015,18-t*37))}
 const path=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pathPts),100,2.25,8,false),mat(0xc5d6d5));path.position.y=.02;scene.add(path);
@@ -103,12 +103,12 @@ festiveArch(10);festiveArch(-1);
 function stringLights(a,b,c,d,y){
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(a,y,c),new THREE.Vector3((a+b)/2,y-2,(c+d)/2),new THREE.Vector3(b,y,d)]);
  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,45,.045,6,false),gold));
- for(let i=0;i<=14;i++){const p=curve.getPoint(i/14);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd88b:0x8be2c2,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.7}));bulb.position.copy(p);scene.add(bulb)}
+ for(let i=0;i<=8;i++){const p=curve.getPoint(i/8);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd88b:0x8be2c2,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.7}));bulb.position.copy(p);scene.add(bulb)}
 }
 stringLights(-13,13,5,5,9);stringLights(-13,13,-17,-17,10);stringLights(-20,20,-8,-8,12);
-for(let i=0;i<20;i++){
- const a=i*2.399,r=25+(i%4)*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
- makeTree(x,z,.8+(i%4)*.16,i%3===0);
+for(let i=0;i<8;i++){
+ const a=i*2.399,r=26+(i%3)*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ makeTree(x,z,.8+(i%3)*.16,i%3===0);
 }
 for(let i=0;i<18;i++){
  const a=i/18*Math.PI*2,r=7.2+(i%3)*.65,x=Math.cos(a)*r,z=-13+Math.sin(a)*r;
@@ -124,7 +124,24 @@ for(let i=0;i<9;i++){const x=-4.5+i*1.125,y=5.1-Math.sin(i/8*Math.PI)*.9;const b
 // Removed oversized snow mounds around the central tree; the ground remains clean and walkable.
 
 // Gifts around the tree
-for(let i=0;i<18;i++){const a=i*2.4,r=3.2+(i%3)*.8;const g=new THREE.Group();g.position.set(Math.cos(a)*r,.35, -13+Math.sin(a)*r);scene.add(g);box(g,0,0,0,.65,.65,.65,i%2?red:cream);box(g,0,.34,0,.12,.08,.68,gold);box(g,0,.34,0,.68,.08,.12,gold)}
+for(let i=0;i<12;i++){const a=i*2.4,r=3.2+(i%3)*.8;const g=new THREE.Group();g.position.set(Math.cos(a)*r,.35, -13+Math.sin(a)*r);scene.add(g);box(g,0,0,0,.65,.65,.65,i%2?red:cream);box(g,0,.34,0,.12,.08,.68,gold);box(g,0,.34,0,.68,.08,.12,gold)}
+
+// Six collectible presents hidden around the village
+const hiddenGifts=[];
+function placeCollectibleGift(x,z,color){
+ const g=new THREE.Group();g.position.set(x,.48,z);g.userData.baseY=.48;
+ const wrap=mat(color,.48,.08);box(g,0,0,0,.62,.62,.62,wrap);box(g,0,.32,0,.11,.07,.66,gold);box(g,0,.32,0,.66,.07,.11,gold);
+ const bow=sphere(g,0,.42,0,.12,cream);bow.scale.set(1,.55,.7);
+ const halo=new THREE.Mesh(new THREE.TorusGeometry(.55,.025,5,16),gold);halo.rotation.x=Math.PI/2;halo.position.y=-.28;g.add(halo);
+ scene.add(g);hiddenGifts.push(g);
+}
+[[-7,7,0x9e4547],[7,7,0x236052],[-23,-12,0x315c71],[13,-18,0x9e4547],[-3,-28,0x78608c],[27,10,0x236052]].forEach(p=>placeCollectibleGift(p[0],p[1],p[2]));
+let giftsFound=0;
+function collectGift(g){
+ g.visible=false;giftsFound++;
+ const label=document.getElementById('giftCount');if(label)label.textContent=giftsFound+' / 6 PRESENTS FOUND';
+ if(giftsFound===6){const q=document.querySelector('#giftQuest span');if(q)q.textContent='✦ DELIVERY COMPLETE';const hint=document.getElementById('sceneHint');if(hint)hint.textContent='ALL SIX PRESENTS DELIVERED — MERRY CHRISTMAS!'}
+}
 
 // Build a friendly low-poly character from actual 3D meshes
 function character(coatColor,hatColor,scale=1){
@@ -167,6 +184,7 @@ document.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',
 document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene.background.getHex()===0x081827;scene.background.set(day?new THREE.Color(0x9bc6d1):new THREE.Color(0x081827));scene.fog.color.set(day?0xa8d0d4:0x9bb9c5);moon.intensity=day?1.15:2.5;warm.intensity=day?20:65});
 
 let lastRender=0;function animate(now=0){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
+hiddenGifts.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*.8;g.position.y=g.userData.baseY+Math.sin(t*2.1+i)*.1;if(started&&player.position.distanceTo(g.position)<1.45)collectGift(g)});
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
 friends.forEach((f,i)=>{const a=t*f.speed+f.phase;f.obj.position.set(f.center.x+Math.cos(a)*f.radius,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,f.center.z+Math.sin(a)*f.radius);f.obj.rotation.y=-a+Math.PI/2;const gait=t*f.speed*f.radius*5+i;f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(gait+j*Math.PI)*.58);f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);f.obj.userData.body.position.y=Math.abs(Math.sin(gait*2))*.035});
 const moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*13+j*Math.PI)*.62:0);player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*13+j*Math.PI+Math.PI)*.4:0);player.userData.body.position.y=moving?Math.abs(Math.sin(t*13*2))*.045:0;
