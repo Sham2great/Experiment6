@@ -40,3 +40,7 @@
 @keyframes snowDrift{to{background-position:0 380px}}
 .intro-screen.leave .intro-frame{transform:scale(1.06);opacity:0;transition:1s}
 @media(max-width:650px){.intro-screen:before{inset:12px}.intro-screen:after{inset:18px}.intro-moon{right:-5%;top:9%;width:112px;opacity:.38}.intro-emblem{width:94px;height:94px}.intro-frame{padding:3vh 18px}.intro-screen h1{font-size:68px}.intro-copy{font-size:14px!important}.intro-side-note{display:none}.intro-bottom-note{bottom:3vh;font-size:6px}}
+
+.gift-quest{position:fixed;z-index:4;top:88px;right:4vw;min-width:174px;padding:11px 15px;border:1px solid rgba(238,217,169,.3);border-radius:12px;background:linear-gradient(135deg,rgba(14,43,51,.86),rgba(7,23,36,.82));box-shadow:0 8px 30px rgba(0,0,0,.18);backdrop-filter:blur(10px);display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.gift-quest span{font-size:7px;letter-spacing:.2em;color:#e8cc8f}.gift-quest strong{font-size:10px;letter-spacing:.1em;color:#f3eee0;font-weight:600}
+@media(max-width:650px){.gift-quest{top:70px;right:12px;min-width:140px;padding:8px 10px}.gift-quest span{font-size:6px}.gift-quest strong{font-size:8px}}
