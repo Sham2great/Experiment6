@@ -1,6 +1,26 @@
 (() => {
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,'0');
+// Two-part soundtrack: opening theme carries through the gift hunt, then the
+// Christmas celebration track takes over as soon as all six presents are found.
+const openingMusic=new Audio('./settings%20(2).mp3');
+const celebrationMusic=new Audio('./Brenda%20Lee%20-%20Rockin%20Around%20The%20Christmas%20Tree%20(Official%20Lyric%20Video)%20(1).mp3');
+openingMusic.loop=true;openingMusic.preload='auto';openingMusic.volume=.58;
+celebrationMusic.loop=true;celebrationMusic.preload='auto';celebrationMusic.volume=.62;
+let musicEnabled=true,celebrationStarted=false,currentMusic=openingMusic;
+async function startCurrentMusic(){
+ if(!musicEnabled||!currentMusic)return;
+ try{await currentMusic.play();const label=$('soundBtn')?.querySelector('span');if(label)label.textContent='Sound on'}catch(e){/* Browsers may wait for a user gesture before allowing audio. */}
+}
+function switchToCelebrationMusic(){
+ if(celebrationStarted)return;celebrationStarted=true;
+ openingMusic.pause();openingMusic.currentTime=0;currentMusic=celebrationMusic;
+ if(musicEnabled){celebrationMusic.currentTime=0;startCurrentMusic()}
+}
+startCurrentMusic();
+document.addEventListener('pointerdown',()=>{if(musicEnabled&&currentMusic.paused)startCurrentMusic()},{once:true});
+window.addEventListener('winter-gift-found',e=>{if(Number(e.detail?.count)>=6)switchToCelebrationMusic()});
+
 function updateCountdown(){
  const now=new Date();
  let target=new Date(now.getFullYear(),11,25,0,0,0,0);
@@ -40,8 +60,12 @@ $('addDecoration').addEventListener('click',()=>{if(!window.decorateTree)return;
 $('undoDecoration').addEventListener('click',()=>{const n=window.undoTreeDecoration?.()??0;$('studioNote').textContent=n?'Last decoration removed. '+n+' left on your tree.':'Your tree is ready for its first decoration.'});
 $('resetTree').addEventListener('click',()=>{window.resetTreeDecorations?.();$('studioNote').textContent='A fresh tree! Start decorating again.'});
 $('closeStudio').addEventListener('click',()=>window.closeTreeStudio?.());
-let audioContext=null,oscillator=null,gain=null,soundOn=false;
-$('soundBtn').addEventListener('click',async()=>{const label=$('#soundBtn span');if(!soundOn){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){label.textContent='Sound unavailable';return}audioContext=audioContext||new AC();await audioContext.resume();oscillator=audioContext.createOscillator();gain=audioContext.createGain();oscillator.type='sine';oscillator.frequency.value=58;gain.gain.value=.018;oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start();soundOn=true;label.textContent='Sound on'}else{oscillator?.stop();oscillator=null;soundOn=false;label.textContent='Sound off'}});
+$('soundBtn').addEventListener('click',async()=>{
+ const label=$('#soundBtn span');
+ musicEnabled=!musicEnabled;
+ if(musicEnabled){await startCurrentMusic();label.textContent='Sound on'}
+ else{openingMusic.pause();celebrationMusic.pause();label.textContent='Sound off'}
+});
 $('modeBtn').addEventListener('click',()=>{document.body.classList.toggle('day-mode');const b=$('modeBtn');b.innerHTML=document.body.classList.contains('day-mode')?'☀ <span>Day mode</span>':'☾ <span>Night mode</span>';});
 $('auroraBtn').addEventListener('click',()=>{const a=$('aurora');a.classList.toggle('off');$('auroraBtn').innerHTML=a.classList.contains('off')?'✧ <span>Aurora off</span>':'✧ <span>Aurora on</span>'});
 $('cinematicBtn').addEventListener('click',()=>{const b=$('cinematicBtn');b.classList.add('active');setTimeout(()=>b.classList.remove('active'),1800);});
