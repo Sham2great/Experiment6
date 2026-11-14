@@ -56,7 +56,45 @@ for(let i=0;i<18;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math
 const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vector3(-2+Math.sin(t*Math.PI*1.45)*8,.015,18-t*37))}
 const path=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pathPts),100,2.25,8,false),mat(0xc5d6d5));path.position.y=.02;scene.add(path);
 function lamp(x,z){cylinder(scene,x,1.7,z,.09,.12,3.4,darkWood);box(scene,x,3.5,z,.58,.6,.58,darkWood);const l=new THREE.PointLight(0xffc87e,14,10);l.position.set(x,3.45,z);scene.add(l);sphere(scene,x,3.5,z,.19,gold)}
-for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21]])lamp(x,z);
+for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21],[-17,1],[17,0],[-17,-20],[17,-21]])lamp(x,z);
+
+/* A fuller village square: market huts, festive arches, bunting and layered lights */
+function marketStall(x,z,accent){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ box(g,0,1.05,0,3.6,1.9,2.2,wood);box(g,0,2.12,0,4.1,.22,2.7,darkWood);
+ for(let i=0;i<5;i++){const stripe=box(g,-1.62+i*.81,2.52,.02,.82,.72,2.78,i%2?cream:mat(accent));stripe.rotation.z=(i-2)*.025}
+ box(g,0,1.55,1.15,3.2,.12,.12,gold);
+ for(const side of [-1,1])cylinder(g,side*1.45,1.25,1.05,.07,.07,2.5,darkWood);
+ for(let i=0;i<5;i++){const gift=new THREE.Group();gift.position.set(-1.1+i*.55,2.2,.75);box(gift,0,.16,0,.32,.32,.32,i%2?red:cream);box(gift,0,.33,0,.07,.04,.34,gold);g.add(gift)}
+ const glow=new THREE.PointLight(0xffbd72,8,8);glow.position.set(0,2,1.5);g.add(glow);
+ return g;
+}
+marketStall(-8,-1,0x9b4147);marketStall(8,-2,0x285b52);marketStall(-16,-16,0x315d75);
+function festiveArch(z){
+ const g=new THREE.Group();g.position.z=z;scene.add(g);
+ for(const x of [-11,11]){cylinder(g,x,3,0,.2,.24,6,darkWood);sphere(g,x,6,0,.32,gold)}
+ const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-11,5.9,0),new THREE.Vector3(-7,8.1,0),new THREE.Vector3(0,8.8,0),new THREE.Vector3(7,8.1,0),new THREE.Vector3(11,5.9,0)]);
+ g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,60,.16,8,false),pine));
+ for(let i=0;i<25;i++){const p=curve.getPoint(i/24);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.14,8,7),new THREE.MeshStandardMaterial({color:i%3===0?0xffe2a0:i%3===1?0x8de2c2:0xff8791,emissive:i%3===0?0xffc76b:i%3===1?0x48c89c:0xd84d65,emissiveIntensity:1.7}));bulb.position.copy(p);bulb.position.y-=.18;g.add(bulb)}
+ return g;
+}
+festiveArch(10);festiveArch(-1);
+function stringLights(a,b,c,d,y){
+ const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(a,y,c),new THREE.Vector3((a+b)/2,y-2,(c+d)/2),new THREE.Vector3(b,y,d)]);
+ scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,45,.045,6,false),gold));
+ for(let i=0;i<=14;i++){const p=curve.getPoint(i/14);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd88b:0x8be2c2,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.7}));bulb.position.copy(p);scene.add(bulb)}
+}
+stringLights(-13,13,5,5,9);stringLights(-13,13,-17,-17,10);stringLights(-20,20,-8,-8,12);
+for(let i=0;i<20;i++){
+ const a=i*2.399,r=25+(i%4)*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ makeTree(x,z,.8+(i%4)*.16,i%3===0);
+}
+for(let i=0;i<18;i++){
+ const a=i/18*Math.PI*2,r=7.2+(i%3)*.65,x=Math.cos(a)*r,z=-13+Math.sin(a)*r;
+ const shrub=sphere(scene,x,.35,z,.72,pine2);shrub.scale.set(1,.65,1);
+ if(i%2===0)sphere(scene,x,.9,z,.16,red);
+}
+
 
 // A welcoming village entrance and warm festive details
 const signCanvas=document.createElement('canvas');signCanvas.width=1024;signCanvas.height=256;const sx=signCanvas.getContext('2d');sx.fillStyle='#233d43';sx.fillRect(0,0,1024,256);sx.strokeStyle='#e7c88d';sx.lineWidth=12;sx.strokeRect(15,15,994,226);sx.textAlign='center';sx.fillStyle='#f6e4b8';sx.font='bold 82px Georgia';sx.fillText("TWAIN'S CHRISTMAS VILLAGE",512,155);
@@ -102,5 +140,5 @@ else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/13
 else{const desired=new THREE.Vector3(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desired,1-Math.pow(.001,dt));cameraTarget.lerp(new THREE.Vector3(player.position.x,1.5,player.position.z),.08);camera.lookAt(cameraTarget)}
 const targetFrame=mobileDevice?1000/30:1000/45;if(now-lastRender>=targetFrame){renderer.render(scene,camera);lastRender=now}}
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2))});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?1.15:1.45))});
 document.getElementById('sceneLoading').classList.add('done');
