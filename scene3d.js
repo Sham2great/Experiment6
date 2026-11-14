@@ -19,6 +19,7 @@ scene.add(new THREE.HemisphereLight(0xc8e8ff,0x31414a,2.1));
 const moon=new THREE.DirectionalLight(0xe0efff,2.5);moon.position.set(-22,35,18);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);moon.shadow.camera.left=-45;moon.shadow.camera.right=45;moon.shadow.camera.top=45;moon.shadow.camera.bottom=-45;scene.add(moon);
 const warm=new THREE.PointLight(0xffbd71,65,32);warm.position.set(0,8,0);scene.add(warm);
 const mat=(color,roughness=.82,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+const windowGlow=new THREE.MeshStandardMaterial({color:0xffcf80,emissive:0xffa94f,emissiveIntensity:1.4,roughness:.3});
 const snowMat=mat(0xeaf4f5),iceMat=mat(0xa8d1db),wood=mat(0x76503e),roof=mat(0x263c4a),darkWood=mat(0x3d302e),pine=mat(0x174b43),pine2=mat(0x236052),gold=mat(0xf4d38b,.38,.35),red=mat(0x9e4547),cream=mat(0xf2e6cf);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),mat(0xdde9e8));ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(48,96),mat(0xf5f7f1));floor.rotation.x=-Math.PI/2;floor.position.y=-.08;floor.receiveShadow=true;scene.add(floor);
@@ -27,8 +28,8 @@ function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.Sphere
 function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cylinder(parent,x,y,z,r1,r2,h,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=(.8+(i%5)*.29)*size,r=(.66-(i%5)*.08)*size;sphere(g,Math.cos(a)*r,y,Math.sin(a)*r,.055*size,[gold,red,cream][i%3])}}return g}
-function house(x,z,scale=1,kind='cabin'){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);box(g,0,1.45,0,5,2.9,4.2,kind==='shop'?red:wood);const r=new THREE.Mesh(new THREE.ConeGeometry(3.55,2.25,4),roof);r.position.set(0,3.95,0);r.rotation.y=Math.PI/4;r.scale.set(1,.75,.82);r.castShadow=true;g.add(r);box(g,0,3.02,0,5.6,.18,4.8,snowMat);box(g,0,.82,2.12,.95,1.65,.12,darkWood);for(const side of [-1,1]){box(g,side*1.45,1.85,2.16,.78,.85,.1,gold);box(g,side*1.45,1.85,2.23,.1,.9,.04,cream);box(g,side*1.45,1.85,2.23,.82,.08,.04,cream)}cylinder(g,1.55,4.35,-.5,.38,.42,1.15,wood);const smoke=new THREE.Group();smoke.position.set(1.55,4.95,-.5);g.add(smoke);for(let i=0;i<4;i++){const puff=sphere(smoke,Math.sin(i)*.18,i*.4,0,.22,mat(0xd8e5e7,.95));puff.userData.smoke=true}const wreath=sphere(g,0,2.3,2.23,.32,pine);sphere(g,0,2.3,2.5,.07,red);return g}
-house(-12,-5,1.12,'cabin');house(12,-10,.95,'shop');house(20,6,.65,'cabin');
+function house(x,z,scale=1,kind='cabin'){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);box(g,0,1.45,0,5,2.9,4.2,kind==='shop'?red:wood);const r=new THREE.Mesh(new THREE.ConeGeometry(3.55,2.25,4),roof);r.position.set(0,3.95,0);r.rotation.y=Math.PI/4;r.scale.set(1,.75,.82);r.castShadow=true;g.add(r);box(g,0,3.02,0,5.6,.18,4.8,snowMat);box(g,0,.82,2.12,.95,1.65,.12,darkWood);for(const side of [-1,1]){box(g,side*1.45,1.85,2.16,.78,.85,.1,windowGlow);box(g,side*1.45,1.85,2.23,.1,.9,.04,cream);box(g,side*1.45,1.85,2.23,.82,.08,.04,cream)}cylinder(g,1.55,4.35,-.5,.38,.42,1.15,wood);const smoke=new THREE.Group();smoke.position.set(1.55,4.95,-.5);g.add(smoke);for(let i=0;i<4;i++){const puff=sphere(smoke,Math.sin(i)*.18,i*.4,0,.22,mat(0xd8e5e7,.95));puff.userData.smoke=true}const wreath=sphere(g,0,2.3,2.23,.32,pine);sphere(g,0,2.3,2.5,.07,red);return g}
+house(-12,-5,1.12,'cabin');house(12,-10,.95,'shop');house(20,6,.65,'cabin');house(-22,2,.72,'shop');house(18,-23,.8,'cabin');house(-19,-24,.7,'cabin');
 makeTree(-24,-16,1.4);makeTree(-20,8,1.05);makeTree(23,-19,1.4);makeTree(26,13,1.1);makeTree(-5,-24,1.2);makeTree(6,-27,1.1);
 const grandTree=makeTree(0,-13,2.25,true);
 
@@ -56,6 +57,13 @@ const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vect
 const path=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pathPts),100,2.25,8,false),mat(0xc5d6d5));path.position.y=.02;scene.add(path);
 function lamp(x,z){cylinder(scene,x,1.7,z,.09,.12,3.4,darkWood);box(scene,x,3.5,z,.58,.6,.58,darkWood);const l=new THREE.PointLight(0xffc87e,14,10);l.position.set(x,3.45,z);scene.add(l);sphere(scene,x,3.5,z,.19,gold)}
 for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21]])lamp(x,z);
+
+// A welcoming village entrance and warm festive details
+const signCanvas=document.createElement('canvas');signCanvas.width=1024;signCanvas.height=256;const sx=signCanvas.getContext('2d');sx.fillStyle='#233d43';sx.fillRect(0,0,1024,256);sx.strokeStyle='#e7c88d';sx.lineWidth=12;sx.strokeRect(15,15,994,226);sx.textAlign='center';sx.fillStyle='#f6e4b8';sx.font='bold 82px Georgia';sx.fillText("TWAIN'S CHRISTMAS VILLAGE",512,155);
+const signTex=new THREE.CanvasTexture(signCanvas);const sign=box(scene,0,3.4,23,12,3.2,.45,wood);const signFace=new THREE.Mesh(new THREE.PlaneGeometry(11.5,2.65),new THREE.MeshBasicMaterial({map:signTex}));signFace.position.set(0,3.4,23.24);scene.add(signFace);cylinder(scene,-5.2,1.8,23,.16,.2,3.6,darkWood);cylinder(scene,5.2,1.8,23,.16,.2,3.6,darkWood);
+for(let i=0;i<9;i++){const x=-4.5+i*1.125,y=5.1-Math.sin(i/8*Math.PI)*.9;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd27b:0x8be1c0,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.5}));bulb.position.set(x,y,23.1);scene.add(bulb)}
+for(let i=0;i<12;i++){const a=i*.52,r=5.3;const drift=sphere(scene,Math.cos(a)*r,.08,-13+Math.sin(a)*r,1.05,snowMat);drift.scale.y=.18}
+
 // Gifts around the tree
 for(let i=0;i<18;i++){const a=i*2.4,r=3.2+(i%3)*.8;const g=new THREE.Group();g.position.set(Math.cos(a)*r,.35, -13+Math.sin(a)*r);scene.add(g);box(g,0,0,0,.65,.65,.65,i%2?red:cream);box(g,0,.34,0,.12,.08,.68,gold);box(g,0,.34,0,.68,.08,.12,gold)}
 
@@ -82,7 +90,7 @@ document.getElementById('cinematicBtn').addEventListener('click',cinematic);
 document.getElementById('enterWorld').addEventListener('click',()=>{started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD / ARROW KEYS TO MOVE  •  DRAG TO LOOK AROUND'});
 document.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>focusOn(b.dataset.place)));
 document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene.background.getHex()===0x081827;scene.background.set(day?new THREE.Color(0x9bc6d1):new THREE.Color(0x081827));scene.fog.color.set(day?0xa8d0d4:0x9bb9c5);moon.intensity=day?1.15:2.5;warm.intensity=day?20:65});
-document.getElementById('auroraBtn').addEventListener('click',()=>{const a=document.getElementById('aurora');a.classList.toggle('off')});
+
 let lastRender=0;function animate(now=0){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
 friends.forEach((f,i)=>{const a=t*f.speed+f.phase;f.obj.position.set(f.center.x+Math.cos(a)*f.radius,0,f.center.z+Math.sin(a)*f.radius);f.obj.rotation.y=-a+Math.PI/2;f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(t*5+i+j)*.3)});
