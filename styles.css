@@ -137,3 +137,25 @@ body.finale-active .top,body.finale-active main,body.finale-active footer,body.f
 .anto-sad .anto-head:after,.story-final .anto-head:after{transform:rotate(12deg);transform-origin:center}
 .anto-sad .story-character,.story-final .story-character{animation:antoSad 1.5s ease-in-out infinite alternate}
 @media(max-width:650px){.story-house{height:clamp(75px,12vh,105px)}.story-houses{bottom:15%;height:28%}.story-string-lights{top:22%}}
+
+/* Keep the gift hunt immersive; restore the full interface after present six. */
+body.gift-hunt-active .top .brand,
+body.gift-hunt-active .top .live,
+body.gift-hunt-active .hero,
+body.gift-hunt-active .controls,
+body.gift-hunt-active .landmarks,
+body.gift-hunt-active footer,
+body.gift-hunt-active #storyJournal,
+body.gift-hunt-active #winterCompanion,
+body.gift-hunt-active #pipBubble{display:none!important}
+body.gift-hunt-active .top{position:fixed;top:0;right:0;padding:14px 18px;z-index:6}
+body.gift-hunt-active .top-right{gap:0}
+body.gift-hunt-active .gift-quest{top:16px;left:16px;bottom:auto}
+body.gift-hunt-active .scene-hint{top:66px;bottom:auto}
+body.gift-hunt-active .mobile-pad{bottom:24px}
+@media(max-width:650px){
+ body.gift-hunt-active .top{padding:10px 12px}
+ body.gift-hunt-active .gift-quest{top:12px;left:12px}
+ body.gift-hunt-active .scene-hint{top:58px}
+ body.gift-hunt-active .mobile-pad{bottom:18px}
+}
