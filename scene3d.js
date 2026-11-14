@@ -3,12 +3,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const host=document.getElementById('three-stage');
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x081827);
-scene.fog=new THREE.FogExp2(0x9bb9c5,0.012);
+scene.fog=new THREE.FogExp2(0x9bb9c5,0.004);
 const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500);
 camera.position.set(0,24,42);
 const mobileDevice=matchMedia('(max-width: 700px)').matches;
 const renderer=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?0.9:1.2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?1.1:1.4));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=false;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -43,10 +43,10 @@ terrainGeo.computeVertexNormals();
 const ground=new THREE.Mesh(terrainGeo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}));
 ground.receiveShadow=true;scene.add(ground);
 
-function box(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-function cylinder(parent,x,y,z,r1,r2,h,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
+function box(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);o.position.set(x,y,z);parent.add(o);return o}
+function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),material);o.position.set(x,y,z);parent.add(o);return o}
+function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);parent.add(o);return o}
+function cylinder(parent,x,y,z,r1,r2,h,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),material);o.position.set(x,y,z);parent.add(o);return o}
 // Distant blue-white mountain silhouettes give the village a real landscape.
 const ridgeRock=mat(0x526d78),ridgeShadow=mat(0x718d94),ridgeSnow=mat(0xdce9e4);
 for(let i=0;i<14;i++){
@@ -75,7 +75,7 @@ for(let i=0;i<34;i++){
  const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.35+(i%3)*.12,0),i%3?stoneMat:stoneLight);
  rock.position.set(x,.12,z);rock.rotation.set(i*.31,i*.7,i*.23);rock.scale.y=.55;scene.add(rock);
 }
-function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=(.8+(i%5)*.29)*size,r=(.66-(i%5)*.08)*size;sphere(g,Math.cos(a)*r,y,Math.sin(a)*r,.055*size,[gold,red,cream][i%3])}}return g}
+function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=(.75+(i%9)*.52)*size;let r=0;for(let k=0;k<3;k++){const h=(1.55-k*.18)*size,cy=(.9+k*.47)*size,base=cy-h/2;if(y>=base&&y<=cy+h/2)r=Math.max(r,(.86-k*.13)*size*(1-(y-base)/h))}sphere(g,Math.cos(a)*(r+.07),y,Math.sin(a)*(r+.07),.055*size,[gold,red,cream][i%3])}}return g}
 const solidObstacles=[];
 function house(x,z,scale=1,kind='cabin'){solidObstacles.push({x,z,hx:2.9*scale,hz:2.55*scale});const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);box(g,0,1.45,0,5,2.9,4.2,kind==='shop'?red:wood);const r=new THREE.Mesh(new THREE.ConeGeometry(3.55,2.25,4),roof);r.position.set(0,3.95,0);r.rotation.y=Math.PI/4;r.scale.set(1,.75,.82);r.castShadow=true;g.add(r);box(g,0,3.02,0,5.6,.18,4.8,snowMat);box(g,0,.82,2.12,.95,1.65,.12,darkWood);for(const side of [-1,1]){box(g,side*1.45,1.85,2.16,.78,.85,.1,windowGlow);box(g,side*1.45,1.85,2.23,.1,.9,.04,cream);box(g,side*1.45,1.85,2.23,.82,.08,.04,cream)}cylinder(g,1.55,4.35,-.5,.38,.42,1.15,wood);const smoke=new THREE.Group();smoke.position.set(1.55,4.95,-.5);g.add(smoke);for(let i=0;i<4;i++){const puff=sphere(smoke,Math.sin(i)*.18,i*.4,0,.22,mat(0xd8e5e7,.95));puff.userData.smoke=true}const wreath=sphere(g,0,2.3,2.23,.32,pine);sphere(g,0,2.3,2.5,.07,red);return g}
 house(-12,-5,1.12,'cabin');house(12,-10,.95,'shop');house(20,6,.65,'cabin');house(-22,2,.72,'shop');house(18,-23,.8,'cabin');house(-19,-24,.7,'cabin');
@@ -88,13 +88,13 @@ function clearTreeDecorations(){
  treeDecorations.length=0;
 }
 function treeSurfaceRadius(y){
- let outer=0;
- for(let i=0;i<3;i++){const h=1.55-i*.18,base=.9+i*.47-h/2,r=.86-i*.13;if(y>=base&&y<=base+h)outer=Math.max(outer,r*(1-(y-base)/h))}
+ const size=2.25;let outer=0;
+ for(let i=0;i<3;i++){const h=(1.55-i*.18)*size,cy=(.9+i*.47)*size,base=cy-h/2,top=cy+h/2,r=(.86-i*.13)*size;if(y>=base&&y<=top)outer=Math.max(outer,r*(1-(y-base)/h))}
  return outer;
 }
 function buildTreeDecoration(type,color,index){
  const material=new THREE.MeshStandardMaterial({color,metalness:.18,roughness:.3,emissive:new THREE.Color(color),emissiveIntensity:.2});
- const y=.48+(index%6)*.34,angle=index*2.399,radius=treeSurfaceRadius(y)+.075;
+ const y=.78+(index%9)*.52,angle=index*2.399,radius=treeSurfaceRadius(y)+.105;
  if(type==='ornament'){
   const g=new THREE.Group();g.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
   const ball=new THREE.Mesh(new THREE.SphereGeometry(.12,12,10),material);ball.userData.ownedMaterial=true;g.add(ball);
@@ -102,13 +102,13 @@ function buildTreeDecoration(type,color,index){
   treeDecorations.push(g);grandTree.add(g);
  }else if(type==='lights'){
   const g=new THREE.Group();
-  for(let i=0;i<64;i++){const q=i/63,ly=.36+q*2.05,a=q*Math.PI*9+index*.5,r=treeSurfaceRadius(ly)+.09;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.045,7,6),material);bulb.position.set(Math.cos(a)*r,ly,Math.sin(a)*r);bulb.userData.ownedMaterial=true;g.add(bulb)}
+  for(let i=0;i<96;i++){const q=i/95,ly=.52+q*4.78,a=q*Math.PI*11+index*.5,r=treeSurfaceRadius(ly)+.12;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.045,7,6),material);bulb.position.set(Math.cos(a)*r,ly,Math.sin(a)*r);bulb.userData.ownedMaterial=true;g.add(bulb)}
   treeDecorations.push(g);grandTree.add(g);
  }else if(type==='ribbon'){
-  const points=[];for(let i=0;i<=100;i++){const q=i/100,ly=.34+q*2.08,a=q*Math.PI*8+index*.25,r=treeSurfaceRadius(ly)+.065;points.push(new THREE.Vector3(Math.cos(a)*r,ly,Math.sin(a)*r))}
-  const mesh=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),100,.045,6,false),material);mesh.userData.ownedMaterial=true;treeDecorations.push(mesh);grandTree.add(mesh);
+  const points=[];for(let i=0;i<=120;i++){const q=i/120,ly=.5+q*4.8,a=q*Math.PI*9+index*.25,r=treeSurfaceRadius(ly)+.09;points.push(new THREE.Vector3(Math.cos(a)*r,ly,Math.sin(a)*r))}
+  const mesh=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),120,.055,6,false),material);mesh.userData.ownedMaterial=true;treeDecorations.push(mesh);grandTree.add(mesh);
  }else if(type==='star'){
-  const g=new THREE.Group();g.position.set(0,2.55,0);const star=new THREE.Mesh(new THREE.OctahedronGeometry(.29,1),material);star.scale.set(1,1.3,.38);star.userData.ownedMaterial=true;g.add(star);treeDecorations.push(g);grandTree.add(g);
+  const g=new THREE.Group();g.position.set(0,5.48,0);const star=new THREE.Mesh(new THREE.OctahedronGeometry(.29,1),material);star.scale.set(1,1.3,.38);star.userData.ownedMaterial=true;g.add(star);treeDecorations.push(g);grandTree.add(g);
  }else if(type==='candy'){
   const g=new THREE.Group();g.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);const cane=new THREE.Mesh(new THREE.TorusGeometry(.105,.035,7,14,Math.PI*1.5),cream);cane.rotation.z=Math.PI/2;g.add(cane);
   for(let j=0;j<3;j++){const stripe=new THREE.Mesh(new THREE.SphereGeometry(.034,7,6),material);stripe.position.set((j-1)*.067,.045,0);stripe.userData.ownedMaterial=true;g.add(stripe)}
@@ -214,21 +214,30 @@ const treeFinale={active:false,done:false,started:0,star:null,light:null,glow:nu
 const finaleOverlay=document.createElement('div');finaleOverlay.id='treeFinaleOverlay';finaleOverlay.innerHTML='<div class="finale-vignette"></div><div class="finale-caption"><div class="finale-kicker">A CHRISTMAS PROMISE</div><h2 class="finale-title">One last little wonder…</h2><p class="finale-copy">The village is waiting for its brightest star.</p><div class="finale-rule"><i></i> ✦ <i></i></div></div><div class="finale-bottom">TWAIN’S CHRISTMAS · A MOMENT TO REMEMBER</div>';document.body.appendChild(finaleOverlay);
 function makeFinaleStar(){const shape=new THREE.Shape();for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,r=i%2===0?.58:.26,x=Math.cos(a)*r,y=Math.sin(a)*r;if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y)}shape.closePath();const geo=new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.045,bevelThickness:.035});const material=new THREE.MeshStandardMaterial({color:0xffdf8a,emissive:0xffb52e,emissiveIntensity:1.2,metalness:.35,roughness:.22});const star=new THREE.Mesh(geo,material);star.rotation.y=Math.PI;star.scale.setScalar(.85);scene.add(star);return star}
 function finaleCaption(kicker,title,copy){const ui=document.getElementById('treeFinaleOverlay');if(!ui)return;ui.classList.remove('caption-in');void ui.offsetWidth;ui.querySelector('.finale-kicker').textContent=kicker;ui.querySelector('.finale-title').textContent=title;ui.querySelector('.finale-copy').textContent=copy;ui.classList.add('caption-in')}
-function updateTreeFinale(now){if(!treeFinale.active)return;const e=(now-treeFinale.started)/1000,playerStart=new THREE.Vector3(-3.4,0,-8.3),friendStart=new THREE.Vector3(3.4,0,-8.3),treeZ=-13;let climb=THREE.MathUtils.clamp((e-5.2)/4.5,0,1);const smooth=v=>v*v*(3-2*v);const cs=smooth(climb);
-if(e<5.2){const q=smooth(THREE.MathUtils.clamp((e-1.7)/3.5,0,1));player.position.lerpVectors(playerStart,new THREE.Vector3(-.72,0,treeZ+1.1),q);friends[0].obj.position.lerpVectors(friendStart,new THREE.Vector3(.72,0,treeZ+1.1),q);player.rotation.y=0;friends[0].obj.rotation.y=0}
-else{const angle=cs*Math.PI*1.25;player.position.set(-Math.cos(angle)*(.78-cs*.22),cs*5.05,treeZ+Math.sin(angle)*(.78-cs*.22));friends[0].obj.position.set(Math.cos(angle+Math.PI)*(.78-cs*.22),cs*5.05,treeZ+Math.sin(angle+Math.PI)*(.78-cs*.22));player.rotation.y=-angle;friends[0].obj.rotation.y=-angle-Math.PI}
-[player,friends[0].obj].forEach((ch,i)=>{const gait=e<5.2?e*7:e*9;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<9.8?Math.sin(gait+j*Math.PI)*.72:0);ch.userData.arms.forEach((arm,j)=>arm.rotation.x=e>9.1?-1.9:Math.sin(gait+j*Math.PI+Math.PI)*.48);ch.userData.body.position.y=e>9.1?Math.sin(e*5)*.04:Math.abs(Math.sin(gait*2))*.05});
-if(e>9.6&&!treeFinale.star){treeFinale.star=makeFinaleStar();treeFinale.star.position.set(player.position.x,player.position.y+1.6,player.position.z+.2)}
-if(treeFinale.star){const q=THREE.MathUtils.clamp((e-10.2)/2.4,0,1),v=smooth(q);treeFinale.star.position.lerpVectors(new THREE.Vector3(-.25,5.9,treeZ+.55),new THREE.Vector3(0,6.05,treeZ),v);treeFinale.star.rotation.z=Math.sin(e*2)*.08;if(q>=1){treeFinale.star.rotation.z=0;if(!treeFinale.light){treeFinale.light=new THREE.PointLight(0xffd47a,0,25);treeFinale.light.position.set(0,6.2,treeZ);scene.add(treeFinale.light);treeFinale.glow=new THREE.Mesh(new THREE.SphereGeometry(.4,12,10),new THREE.MeshBasicMaterial({color:0xffe5a6,transparent:true,opacity:.0}));treeFinale.glow.position.set(0,6,treeZ);scene.add(treeFinale.glow)}}}
-if(treeFinale.light){const power=THREE.MathUtils.clamp((e-12.4)/1.8,0,1);treeFinale.light.intensity=power*95;treeFinale.glow.material.opacity=power*.24;grandTree.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissiveIntensity=Math.max(o.material.emissiveIntensity||0,power*.28)})}
-if(e>13&&e<16.8){for(let i=0;i<2;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.045,6,6),new THREE.MeshBasicMaterial({color:i%2?0xffe4a0:0xd8f5f0}));const a=Math.random()*Math.PI*2,r=1+Math.random()*2.2;p.position.set(Math.cos(a)*r,3+Math.random()*4,treeZ+Math.sin(a)*r);p.userData.velocity=new THREE.Vector3(-p.position.x*.25,.8+Math.random(),(treeZ-p.position.z)*.25);scene.add(p);treeFinale.particles.push(p)}}
-treeFinale.particles.forEach(p=>{p.position.addScaledVector(p.userData.velocity,.035);p.material.opacity=Math.max(0,p.material.opacity-.008);p.scale.multiplyScalar(.985)});treeFinale.particles=treeFinale.particles.filter(p=>{if(p.material.opacity<=.01){scene.remove(p);p.geometry.dispose();p.material.dispose();return false}return true});
-const camP=e<5.2?new THREE.Vector3(0,8.5,treeZ+17):e<10?new THREE.Vector3(9,8,treeZ+11):e<14?new THREE.Vector3(5,7.4,treeZ+10):new THREE.Vector3(0,10,treeZ+16);const look=e<10?new THREE.Vector3(0,2.8,treeZ):new THREE.Vector3(0,3.3,treeZ);camera.position.lerp(camP,.035);camera.lookAt(look);
-if(e<1.8&&treeFinale.lastCaption!==0){finaleCaption('A CHRISTMAS PROMISE','One last little wonder…','The village is waiting for its brightest star.');treeFinale.lastCaption=0}
-if(e>4.8&&treeFinale.lastCaption!==1){finaleCaption('TOGETHER','A little higher…','Some things are better when you reach them together.');treeFinale.lastCaption=1}
-if(e>9.6&&treeFinale.lastCaption!==2){finaleCaption('THE FINAL TOUCH','For the top of our tree.','A little light for this little world.');treeFinale.lastCaption=2}
-if(e>13&&treeFinale.lastCaption!==3){finaleCaption('THE WISHING TREE','Look how it shines.','And just like that, Christmas feels a little more magical.');treeFinale.lastCaption=3}
-if(e>19.5){treeFinale.active=false;treeFinale.done=true;document.body.classList.remove('finale-active');cameraMode='follow';player.position.set(-1.4,0,-7.8);friends[0].obj.position.set(1.4,0,-7.8);player.rotation.y=0;friends[0].obj.rotation.y=0;const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='THE WISHING TREE IS COMPLETE ✦ MERRY CHRISTMAS';}
+const finaleLadders=[];
+function makeFinaleLadder(){const g=new THREE.Group(),timber=mat(0x704a32),rungMat=mat(0xc49a67);for(const x of [-.38,.38])box(g,x,3.05,0,.13,6.1,.15,timber);for(let i=0;i<11;i++)box(g,0,.38+i*.52,.025,.78,.105,.12,rungMat);scene.add(g);return g}
+function updateTreeFinale(now,dt){
+ if(!treeFinale.active)return;
+ const e=(now-treeFinale.started)/1000,treeZ=-13,baseZ=-10.45,smooth=v=>v*v*(3-2*v),clamp=THREE.MathUtils.clamp;
+ const chars=[player,friends[0].obj],xs=[-1.05,1.05],starts=[-3.5,3.5];
+ if(!finaleLadders.length)finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());
+ const walk=smooth(clamp(e/4.1,0,1));
+ chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ,walk));ch.rotation.y=0;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=e<4.1?-.9:0)});
+ finaleLadders.forEach((ladder,i)=>{const plant=smooth(clamp((e-4.1)/1.8,0,1));ladder.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),1.75*(1-plant),THREE.MathUtils.lerp(-8.65,baseZ,walk));ladder.rotation.set(-.22*plant,0,(Math.PI/2)*(1-plant));if(e>=4.1&&e<6)chars[i].userData.arms.forEach(arm=>arm.rotation.x=-1.1+plant*.7)});
+ const climb=smooth(clamp((e-6.2)/7.2,0,1));
+ chars.forEach((ch,i)=>{if(e<6.2)ch.position.set(xs[i],0,baseZ+.25);else if(e<14.1)ch.position.set(xs[i],.12+climb*4.75,baseZ-.12-climb*.75);else{const down=smooth(clamp((e-14.1)/4.1,0,1));ch.position.set(xs[i],4.87*(1-down),THREE.MathUtils.lerp(baseZ-.87,baseZ+.35,down))}const stepping=e>6.2&&e<14.1,gait=e*7.2+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=stepping?Math.sin(gait+j*Math.PI)*.34:0);ch.userData.arms.forEach(arm=>arm.rotation.x=stepping?-.95:(e>11.7&&e<14.3?-1.75:0));ch.userData.body.position.y=stepping?Math.abs(Math.sin(gait*2))*.025:0});
+ if(e>12.5&&!treeFinale.star){treeFinale.star=makeFinaleStar();treeFinale.star.position.set(-1.05,5.45,baseZ-.9)}
+ if(treeFinale.star){const q=smooth(clamp((e-12.7)/2.1,0,1));treeFinale.star.position.lerpVectors(new THREE.Vector3(-1.05,5.45,baseZ-.9),new THREE.Vector3(0,5.72,treeZ-.04),q);treeFinale.star.rotation.z=(1-q)*Math.sin(e*2)*.07;if(q>=1&&!treeFinale.light){treeFinale.star.rotation.z=0;treeFinale.light=new THREE.PointLight(0xffd47a,0,22);treeFinale.light.position.set(0,5.8,treeZ);scene.add(treeFinale.light);treeFinale.glow=new THREE.Mesh(new THREE.SphereGeometry(.36,10,8),new THREE.MeshBasicMaterial({color:0xffe5a6,transparent:true,opacity:0,depthWrite:false}));treeFinale.glow.position.set(0,5.72,treeZ);scene.add(treeFinale.glow)}}
+ if(treeFinale.light){const power=clamp((e-14.8)/1.5,0,1);treeFinale.light.intensity=power*48;treeFinale.glow.material.opacity=power*.16}
+ if(e>15&&e<17.2&&Math.floor(e*7)!==Math.floor((e-dt)*7)){for(let i=0;i<3&&treeFinale.particles.length<45;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.035,5,5),new THREE.MeshBasicMaterial({color:i%2?0xffe4a0:0xd8f5f0}));const a=Math.random()*Math.PI*2,r=.8+Math.random()*1.8;p.position.set(Math.cos(a)*r,3.8+Math.random()*2.2,treeZ+Math.sin(a)*r);p.userData.velocity=new THREE.Vector3(-p.position.x*.2,.65+Math.random()*.45,(treeZ-p.position.z)*.2);scene.add(p);treeFinale.particles.push(p)}}
+ treeFinale.particles.forEach(p=>{p.position.addScaledVector(p.userData.velocity,dt);p.material.opacity=Math.max(0,p.material.opacity-.35*dt);p.scale.multiplyScalar(.99)});treeFinale.particles=treeFinale.particles.filter(p=>{if(p.material.opacity<=.01){scene.remove(p);p.geometry.dispose();p.material.dispose();return false}return true});
+ const camP=e<6?new THREE.Vector3(0,7.4,treeZ+14):e<14?new THREE.Vector3(6,7,treeZ+10):new THREE.Vector3(0,9,treeZ+15);camera.position.lerp(camP,1-Math.pow(.001,dt));camera.lookAt(0,2.8,treeZ);
+ if(e<1.8&&treeFinale.lastCaption!==0){finaleCaption('A CHRISTMAS PROMISE','One last little wonder…','The village is waiting for its brightest star.');treeFinale.lastCaption=0}
+ if(e>4.1&&treeFinale.lastCaption!==1){finaleCaption('SIDE BY SIDE','Let’s set these up…','A little teamwork makes a little magic.');treeFinale.lastCaption=1}
+ if(e>6.2&&treeFinale.lastCaption!==2){finaleCaption('ONE RUNG AT A TIME','Up we go…','Carefully, together, reaching for the top.');treeFinale.lastCaption=2}
+ if(e>12.5&&treeFinale.lastCaption!==3){finaleCaption('THE FINAL TOUCH','For the top of our tree.','A little light for this little world.');treeFinale.lastCaption=3}
+ if(e>15&&treeFinale.lastCaption!==4){finaleCaption('THE WISHING TREE','Look how it shines.','And just like that, Christmas feels a little more magical.');treeFinale.lastCaption=4}
+ if(e>20){treeFinale.active=false;treeFinale.done=true;document.body.classList.remove('finale-active');cameraMode='follow';chars[0].position.set(-1.4,0,-7.8);chars[1].position.set(1.4,0,-7.8);chars.forEach(ch=>ch.rotation.y=0);finaleLadders.forEach(l=>{scene.remove(l);l.traverse(o=>o.geometry?.dispose())});finaleLadders.length=0;const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='THE WISHING TREE IS COMPLETE ✦ MERRY CHRISTMAS'}
 }
 function collectGift(g){
  g.visible=false;giftsFound++;window.dispatchEvent(new CustomEvent('winter-gift-found',{detail:{count:giftsFound}}));
@@ -343,11 +352,11 @@ if(!treeFinale.active){
  }
 const moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*13+j*Math.PI)*.62:0);player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*13+j*Math.PI+Math.PI)*.4:0);player.userData.body.position.y=moving?Math.abs(Math.sin(t*13*2))*.045:0;
 if(started&&cameraMode==='follow'){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*5.2),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
-if(cameraMode==='treeFinale'){updateTreeFinale(now)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
+if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
 else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
 else{desiredCamera.set(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desiredCamera,1-Math.pow(.001,dt));lookTarget.set(player.position.x,1.5,player.position.z);cameraTarget.lerp(lookTarget,.08);camera.lookAt(cameraTarget)}
-const targetFrame=mobileDevice?1000/30:1000/40;if(now-lastRender>=targetFrame){renderer.render(scene,camera);lastRender=now}}
+const targetFrame=1000/60;if(document.visibilityState==='visible'&&now-lastRender>=targetFrame){renderer.render(scene,camera);lastRender=now}}
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?0.9:1.2))});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobileDevice?1.1:1.4))});
 document.getElementById('sceneLoading').classList.add('done');
