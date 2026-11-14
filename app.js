@@ -53,7 +53,33 @@ document.addEventListener('click',e=>{
  if(e.target.id==='shareCard')sharePostcard();
 });
 document.addEventListener('input',e=>{if(e.target.id==='toName'||e.target.id==='message'){const n=$('cardTo'),m=$('cardMessage');if(n)n.textContent='TO '+($('toName').value||'SOMEONE SPECIAL').toUpperCase();if(m)m.textContent=$('message').value||'Wishing you a little magic this Christmas.'}});
-function startGame(){const c=$('game'),x=c.getContext('2d'),line=$('scoreline');let sleigh=210,items=[],score=0,time=20,active=true,last=0;function move(e){const r=c.getBoundingClientRect();sleigh=(e.clientX-r.left)/r.width*c.width}c.onpointermove=move;function draw(t){if(!active)return;if(t-last>30){last=t;x.clearRect(0,0,420,260);x.fillStyle='#f5d99b';x.font='26px sans-serif';x.fillText('🛷',sleigh-15,244);items.forEach(it=>{it.y+=it.v;x.fillStyle='#fff';x.fillText('🎁',it.x,it.y);if(it.y>220&&Math.abs(it.x-sleigh)<31){it.y=300;score++}});items=items.filter(it=>it.y<275);if(Math.random()<.07)items.push({x:20+Math.random()*380,y:-10,v:2+Math.random()*2});line.textContent='Gifts caught: '+score+' · '+time+' seconds'}requestAnimationFrame(draw)}requestAnimationFrame(draw);const timer=setInterval(()=>{time--;if(time<=0){clearInterval(timer);active=false;line.textContent='Time! You caught '+score+' gifts. Well done!'}},1000)}
+function startGame(){
+ const c=$('game'),x=c.getContext('2d'),line=$('scoreline');
+ let sleigh=210,targetSleigh=210,items=[],score=0,remaining=20,active=true,last=0,spawn=0,raf=0;
+ const W=c.width,H=c.height;
+ function move(e){const r=c.getBoundingClientRect();targetSleigh=Math.max(24,Math.min(W-24,(e.clientX-r.left)/r.width*W))}
+ c.onpointermove=move;c.onpointerdown=e=>{c.setPointerCapture?.(e.pointerId);move(e)};c.style.touchAction='none';
+ function draw(t){
+  if(!active)return;
+  const dt=last?Math.min((t-last)/1000,.04):0;last=t;remaining=Math.max(0,remaining-dt);
+  sleigh+=(targetSleigh-sleigh)*Math.min(1,dt*24);spawn+=dt;
+  if(spawn>=.42){spawn=0;items.push({x:22+Math.random()*(W-44),y:-24,v:255+Math.random()*125,spin:Math.random()*6.28})}
+  x.clearRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,.22)';x.lineWidth=1;
+  for(let i=0;i<10;i++){const sy=(i*31+t*.12)%H;x.beginPath();x.moveTo((i*47)%W,sy);x.lineTo((i*47)%W-3,sy+9);x.stroke()}
+  for(const it of items){
+   it.y+=it.v*dt;it.spin+=dt*2;
+   x.save();x.translate(it.x,it.y);x.rotate(Math.sin(it.spin)*.08);x.font='27px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🎁',0,0);x.restore();
+   if(it.y>H-43&&it.y<H-7&&Math.abs(it.x-sleigh)<36){it.caught=true;score++}
+  }
+  items=items.filter(it=>!it.caught&&it.y<H+28);
+  x.font='34px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🛷',sleigh,H-22);
+  line.textContent='Gifts caught: '+score+' · '+Math.ceil(remaining)+' seconds';
+  if(remaining<=0){active=false;line.textContent='Time! You caught '+score+' gifts. Well done!';return}
+  raf=requestAnimationFrame(draw);
+ }
+ cancelAnimationFrame(raf);requestAnimationFrame(draw);
+}
 function makeCard(){const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,1200,800);g.addColorStop(0,'#163e50');g.addColorStop(1,'#071522');x.fillStyle=g;x.fillRect(0,0,1200,800);for(let i=0;i<150;i++){x.fillStyle='rgba(255,255,255,'+(.2+Math.random()*.7)+')';x.beginPath();x.arc(Math.random()*1200,Math.random()*800,1+Math.random()*2,0,7);x.fill()}x.textAlign='center';x.fillStyle='#f5d99b';x.font='32px Georgia';x.fillText('❄  ✦  ❄',600,170);x.font='bold 92px Georgia';x.fillText('Merry Christmas',600,330);x.fillStyle='#f5f4ec';x.font='34px Georgia';const msg=$('message')?.value||'Wishing you a little magic this Christmas.';x.fillText(msg.slice(0,55),600,450);x.font='24px Arial';x.fillStyle='#d9c18e';x.fillText('TO '+($('toName')?.value||'SOMEONE SPECIAL').toUpperCase(),600,690);return c}
 function downloadPostcard(){const a=document.createElement('a');a.download='twains-christmas-postcard.png';a.href=makeCard().toDataURL('image/png');a.click()}
 async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const file=new File([blob],'twains-christmas-postcard.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'Merry Christmas'})}catch(e){}}else downloadPostcard()})}
