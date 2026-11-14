@@ -18,7 +18,7 @@ function switchToCelebrationMusic(){
  if(musicEnabled){celebrationMusic.currentTime=0;startCurrentMusic()}
 }
 startCurrentMusic();
-document.addEventListener('pointerdown',()=>{if(musicEnabled&&currentMusic.paused)startCurrentMusic()},{once:true});
+document.addEventListener('pointerdown',e=>{if(e.target.closest('#soundBtn'))return;if(musicEnabled&&currentMusic.paused)startCurrentMusic()});
 window.addEventListener('winter-gift-found',e=>{if(Number(e.detail?.count)>=6)switchToCelebrationMusic()});
 
 function updateCountdown(){
