@@ -159,3 +159,20 @@ body.gift-hunt-active .mobile-pad{bottom:24px}
  body.gift-hunt-active .scene-hint{top:58px}
  body.gift-hunt-active .mobile-pad{bottom:18px}
 }
+
+
+/* Low-end device profile: preserve the opening cinematic while avoiding expensive blur/filter work. */
+.low-end-device .story-sky-glow{filter:none;animation:none;opacity:.38;transform:none}
+.low-end-device .story-pine{filter:none}
+.low-end-device .story-lamp:before{box-shadow:0 0 10px 4px rgba(244,217,154,.24)}
+.low-end-device .story-gifts{filter:none}
+.low-end-device .story-copy{text-shadow:0 2px 8px rgba(0,0,0,.45)}
+.low-end-device .story-copy h2,.low-end-device .story-copy p{text-shadow:none}
+.low-end-device .story-text-in{animation-name:storyTextInLite;animation-duration:.45s}
+@keyframes storyTextInLite{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.low-end-device .story-character{animation-duration:7s}
+.low-end-device .story-cat{animation-duration:5s;filter:none}
+.low-end-device .story-gifts i{animation-duration:3.5s}
+.low-end-device #treeFinaleOverlay{background:rgba(2,9,18,.2)}
+.low-end-device .finale-caption{text-shadow:none}
+@media(prefers-reduced-motion:reduce){.low-end-device .story-character,.low-end-device .story-cat,.low-end-device .story-gifts i{animation:none!important}}
