@@ -21,8 +21,28 @@ const warm=new THREE.PointLight(0xffbd71,28,24);warm.position.set(0,8,0);scene.a
 const mat=(color,roughness=.82,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const windowGlow=new THREE.MeshStandardMaterial({color:0xffcf80,emissive:0xffa94f,emissiveIntensity:1.4,roughness:.3});
 const snowMat=mat(0xeaf4f5),iceMat=mat(0xa8d1db),wood=mat(0x76503e),roof=mat(0x263c4a),darkWood=mat(0x3d302e),pine=mat(0x174b43),pine2=mat(0x236052),gold=mat(0xf4d38b,.38,.35),red=mat(0x9e4547),cream=mat(0xf2e6cf);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),mat(0xdde9e8));ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
-const floor=new THREE.Mesh(new THREE.CircleGeometry(48,96),mat(0xf5f7f1));floor.rotation.x=-Math.PI/2;floor.position.y=-.08;floor.receiveShadow=true;scene.add(floor);
+// A softly rolling, multi-toned alpine ground instead of a featureless white platform.
+const terrainGeo=new THREE.PlaneGeometry(180,180,100,100);
+terrainGeo.rotateX(-Math.PI/2);
+const terrainPos=terrainGeo.attributes.position,terrainColors=[];
+for(let i=0;i<terrainPos.count;i++){
+ const x=terrainPos.getX(i),z=terrainPos.getZ(i);
+ const broad=Math.sin(x*.075+z*.035)*.055+Math.cos(z*.09-x*.04)*.045;
+ const detail=Math.sin(x*.31)*Math.cos(z*.27)*.018;
+ terrainPos.setY(i,broad+detail-.12);
+ const patch=(Math.sin(x*.17+Math.cos(z*.11)*2)+Math.cos(z*.19-x*.08))*.5;
+ const edge=Math.max(0,Math.min(1,(Math.hypot(x,z)-18)/58));
+ const snow= new THREE.Color(0xd9e8e5);
+ const shadow= new THREE.Color(0x8faeaa);
+ const pineTint=new THREE.Color(0x567e72);
+ const c=snow.clone().lerp(shadow,Math.max(0,patch-.18)*.28+edge*.12).lerp(pineTint,Math.max(0,-patch-.38)*.16+edge*.08);
+ terrainColors.push(c.r,c.g,c.b);
+}
+terrainGeo.setAttribute('color',new THREE.Float32BufferAttribute(terrainColors,3));
+terrainGeo.computeVertexNormals();
+const ground=new THREE.Mesh(terrainGeo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}));
+ground.receiveShadow=true;scene.add(ground);
+
 function box(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
@@ -73,9 +93,23 @@ window.openTreeStudio=()=>{document.getElementById('treeStudio').classList.add('
 window.closeTreeStudio=()=>{document.getElementById('treeStudio').classList.remove('open');document.getElementById('treeStudio').setAttribute('aria-hidden','true');cameraMode='follow';};
 
 for(let i=0;i<10;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
-// Curving village path
-const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vector3(-2+Math.sin(t*Math.PI*1.45)*8,.015,18-t*37))}
-const path=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pathPts),100,2.25,8,false),mat(0xc5d6d5));path.position.y=.02;scene.add(path);
+// A broad winding packed-snow road with soft darker edges.
+const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vector3(-2+Math.sin(t*Math.PI*1.45)*8,.035,18-t*37))}
+const roadCurve=new THREE.CatmullRomCurve3(pathPts);
+function roadStrip(width,y,material){
+ const verts=[],indices=[];
+ for(let i=0;i<=100;i++){
+  const t=i/100,p=roadCurve.getPointAt(t),tan=roadCurve.getTangentAt(t);
+  const side=new THREE.Vector3(-tan.z,0,tan.x).normalize();
+  verts.push(p.x-side.x*width/2,y,p.z-side.z*width/2,p.x+side.x*width/2,y,p.z+side.z*width/2);
+  if(i<100){const n=i*2;indices.push(n,n+1,n+2,n+1,n+3,n+2)}
+ }
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setIndex(indices);geo.computeVertexNormals();
+ const mesh=new THREE.Mesh(geo,material);scene.add(mesh);return mesh;
+}
+roadStrip(4.7,.015,mat(0x879f9b));
+roadStrip(3.9,.035,mat(0xc1d3ce));
+
 function lamp(x,z){cylinder(scene,x,1.7,z,.09,.12,3.4,darkWood);box(scene,x,3.5,z,.58,.6,.58,darkWood);if(Math.abs(x)<10){const l=new THREE.PointLight(0xffc87e,4,6);l.position.set(x,3.45,z);scene.add(l)}sphere(scene,x,3.5,z,.19,gold)}
 for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21],[-17,1],[17,0],[-17,-20],[17,-21]])lamp(x,z);
 
@@ -110,10 +144,10 @@ for(let i=0;i<8;i++){
  const a=i*2.399,r=26+(i%3)*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
  makeTree(x,z,.8+(i%3)*.16,i%3===0);
 }
-for(let i=0;i<18;i++){
- const a=i/18*Math.PI*2,r=7.2+(i%3)*.65,x=Math.cos(a)*r,z=-13+Math.sin(a)*r;
- const shrub=sphere(scene,x,.35,z,.72,pine2);shrub.scale.set(1,.65,1);
- if(i%2===0)sphere(scene,x,.9,z,.16,red);
+// Small, separated evergreen clusters frame the square without forming a snowbank.
+for(const [x,z,r] of [[-7,-9,.55],[7,-8,.62],[-6,-18,.48],[6,-19,.5],[-11,-14,.55],[11,-15,.55]]){
+ const shrub=sphere(scene,x,.28,z,r,pine2);shrub.scale.set(1,.7,1);
+ if(Math.abs(x)>8)sphere(scene,x,.62,z,.11,red);
 }
 
 
@@ -122,9 +156,6 @@ const signCanvas=document.createElement('canvas');signCanvas.width=1024;signCanv
 const signTex=new THREE.CanvasTexture(signCanvas);const sign=box(scene,0,3.4,23,12,3.2,.45,wood);const signFace=new THREE.Mesh(new THREE.PlaneGeometry(11.5,2.65),new THREE.MeshBasicMaterial({map:signTex}));signFace.position.set(0,3.4,23.24);scene.add(signFace);cylinder(scene,-5.2,1.8,23,.16,.2,3.6,darkWood);cylinder(scene,5.2,1.8,23,.16,.2,3.6,darkWood);
 for(let i=0;i<9;i++){const x=-4.5+i*1.125,y=5.1-Math.sin(i/8*Math.PI)*.9;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd27b:0x8be1c0,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.5}));bulb.position.set(x,y,23.1);scene.add(bulb)}
 // Removed oversized snow mounds around the central tree; the ground remains clean and walkable.
-
-// Gifts around the tree
-for(let i=0;i<12;i++){const a=i*2.4,r=3.2+(i%3)*.8;const g=new THREE.Group();g.position.set(Math.cos(a)*r,.35, -13+Math.sin(a)*r);scene.add(g);box(g,0,0,0,.65,.65,.65,i%2?red:cream);box(g,0,.34,0,.12,.08,.68,gold);box(g,0,.34,0,.68,.08,.12,gold)}
 
 // Six collectible presents hidden around the village
 const hiddenGifts=[];
@@ -135,7 +166,8 @@ function placeCollectibleGift(x,z,color){
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.55,.025,5,16),gold);halo.rotation.x=Math.PI/2;halo.position.y=-.28;g.add(halo);
  scene.add(g);hiddenGifts.push(g);
 }
-[[-7,7,0x9e4547],[7,7,0x236052],[-23,-12,0x315c71],[13,-18,0x9e4547],[-3,-28,0x78608c],[27,10,0x236052]].forEach(p=>placeCollectibleGift(p[0],p[1],p[2]));
+// Presents are placed in three tidy pairs along the village route, not scattered randomly.
+[[-5,9,0x9e4547],[-3.9,9,0x236052],[4,-3,0x315c71],[5.1,-3,0x9e4547],[-5,-23,0x78608c],[-3.9,-23,0x236052]].forEach(p=>placeCollectibleGift(p[0],p[1],p[2]));
 let giftsFound=0;
 function collectGift(g){
  g.visible=false;giftsFound++;
