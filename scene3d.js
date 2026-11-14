@@ -222,7 +222,7 @@ function updateTreeFinale(now,dt){
  const chars=[player,friends[0].obj],xs=[-1.05,1.05],starts=[-3.5,3.5];
  if(!finaleLadders.length)finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());
  const walk=smooth(clamp(e/4.1,0,1));
- chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ,walk));ch.rotation.y=0;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=e<4.1?-.9:0)});
+ chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ,walk));ch.rotation.y=Math.PI;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=e<4.1?-.9:0)});
  finaleLadders.forEach((ladder,i)=>{const plant=smooth(clamp((e-4.1)/1.8,0,1));ladder.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),1.75*(1-plant),THREE.MathUtils.lerp(-8.65,baseZ,walk));ladder.rotation.set(-.22*plant,0,(Math.PI/2)*(1-plant));if(e>=4.1&&e<6)chars[i].userData.arms.forEach(arm=>arm.rotation.x=-1.1+plant*.7)});
  const climb=smooth(clamp((e-6.2)/7.2,0,1));
  chars.forEach((ch,i)=>{if(e<6.2)ch.position.set(xs[i],0,baseZ+.25);else if(e<14.1)ch.position.set(xs[i],.12+climb*4.75,baseZ-.12-climb*.75);else{const down=smooth(clamp((e-14.1)/4.1,0,1));ch.position.set(xs[i],4.87*(1-down),THREE.MathUtils.lerp(baseZ-.87,baseZ+.35,down))}const stepping=e>6.2&&e<14.1,gait=e*7.2+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=stepping?Math.sin(gait+j*Math.PI)*.34:0);ch.userData.arms.forEach(arm=>arm.rotation.x=stepping?-.95:(e>11.7&&e<14.3?-1.75:0));ch.userData.body.position.y=stepping?Math.abs(Math.sin(gait*2))*.025:0});
@@ -266,10 +266,13 @@ function character(coatColor,hatColor,scale=1,style={}){
  for(let b=0;b<3;b++)sphere(body,.105,1.34-b*.2,.49,.035,zipper);
  // Keep the face and neckline clean: no beard-shaped collar or facial hair.
  sphere(body,0,1.72,0,.39,skin);
+ // Hair is deliberately visible beneath the hat and around both sides of the face.
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.405,12,9,0,Math.PI*2,0,Math.PI*.52),hair);hairCap.position.set(0,2.0,-.015);body.add(hairCap);
  if(style.hairLong){
-  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.66,4,8),hair);back.position.set(0,1.48,-.28);body.add(back);
-  for(const side of [-1,1]){const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.52,4,8),hair);lock.position.set(side*.29,1.54,.02);body.add(lock)}
- }else sphere(body,0,1.98,-.08,.34,hair);
+  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.82,5,9),hair);back.position.set(0,1.43,-.31);body.add(back);
+  for(const side of [-1,1]){const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.115,.62,5,9),hair);lock.position.set(side*.315,1.53,.16);lock.rotation.z=side*-.08;body.add(lock)}
+  for(let i=-1;i<=1;i++){const fringe=new THREE.Mesh(new THREE.SphereGeometry(.115,9,7),hair);fringe.scale.set(1,.48,.55);fringe.position.set(i*.105,1.98,.335);body.add(fringe)}
+ }else{const fringe=new THREE.Mesh(new THREE.SphereGeometry(.23,10,7),hair);fringe.scale.set(1,.48,.62);fringe.position.set(0,1.99,.31);body.add(fringe)}
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
  const cap=new THREE.Mesh(new THREE.SphereGeometry(.43,12,9,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
@@ -323,12 +326,14 @@ renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX
 renderer.domElement.addEventListener('pointermove',e=>{if(!drag||!started)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.15,.8);lastX=e.clientX;lastY=e.clientY});
 renderer.domElement.addEventListener('pointerup',()=>drag=false);renderer.domElement.addEventListener('pointercancel',()=>drag=false);
 document.querySelectorAll('[data-move]').forEach(btn=>{const k={forward:'w',back:'s',left:'a',right:'d'}[btn.dataset.move];btn.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>keys[k]=false))});
+const sprintButton=document.querySelector('[data-sprint]');
+if(sprintButton){sprintButton.addEventListener('pointerdown',e=>{e.preventDefault();keys.shift=true;sprintButton.classList.add('active')});['pointerup','pointerleave','pointercancel'].forEach(ev=>sprintButton.addEventListener(ev,()=>{keys.shift=false;sprintButton.classList.remove('active')}));}
 function cinematic(){cameraMode='cinema';cinema=true;cinemaStart=performance.now()}
 let cinemaStart=performance.now();
 function focusOn(place){const p=place==='cabin'?new THREE.Vector3(-12,2,-5):place==='workshop'?new THREE.Vector3(12,2,-10):new THREE.Vector3(0,3,-13);cameraMode='focus';focusStart=performance.now();focusFrom=camera.position.clone();focusTo=p.clone().add(new THREE.Vector3(0,9,13));focusLook=p}
 let focusStart=0,focusFrom=new THREE.Vector3(),focusTo=new THREE.Vector3(),focusLook=new THREE.Vector3();
 document.getElementById('cinematicBtn').addEventListener('click',cinematic);
-document.getElementById('enterWorld').addEventListener('click',()=>{started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD / ARROWS MOVE  •  DRAG TO LOOK  •  E TO INTERACT  •  FIND 6 PRESENTS'});
+document.getElementById('enterWorld').addEventListener('click',()=>{started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD / ARROWS MOVE  •  HOLD SHIFT TO SPRINT  •  DRAG TO LOOK  •  E TO INTERACT  •  FIND 6 PRESENTS'});
 document.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.place!=='tree')focusOn(b.dataset.place)}));
 document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene.background.getHex()===0x081827;scene.background.set(day?new THREE.Color(0x9bc6d1):new THREE.Color(0x081827));scene.fog.color.set(day?0xa8d0d4:0x9bb9c5);moon.intensity=day?1.15:2.5;warm.intensity=day?20:65});
 
@@ -353,8 +358,12 @@ if(!treeFinale.active){
  antoCat.userData.legs.forEach((leg,j)=>leg.rotation.x=walking?Math.sin(gait+(j%2)*Math.PI+(j>1?Math.PI:0))*.52:0);
  antoCat.userData.tail.rotation.z=Math.sin(t*3.5)*.3;
  }
-const moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*13+j*Math.PI)*.62:0);player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*13+j*Math.PI+Math.PI)*.4:0);player.userData.body.position.y=moving?Math.abs(Math.sin(t*13*2))*.045:0;
-if(started&&cameraMode==='follow'){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*5.2),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
+const sprinting=!!keys.shift,moving=keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright;
+const gaitSpeed=sprinting?19:13;
+player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI)*(sprinting?.82:.62):0);
+player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI+Math.PI)*(sprinting?.58:.4):0);
+player.userData.body.position.y=moving?Math.abs(Math.sin(t*gaitSpeed*2))*(sprinting?.075:.045):0;
+if(started&&cameraMode==='follow'){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*(sprinting?8.6:5.2)),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
 if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
 else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
