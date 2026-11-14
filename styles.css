@@ -74,7 +74,7 @@ body.finale-active .top,body.finale-active main,body.finale-active footer,body.f
 
 
 /* Opening story: Anto's missing Christmas presents */
-.opening-story{position:absolute;inset:0;z-index:4;overflow:hidden;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(4,14,26,.18),rgba(4,17,28,.2) 48%,rgba(4,14,25,.82));opacity:1;transition:opacity 1s,visibility 1s}
+.opening-story{position:absolute;inset:0;z-index:4;overflow:hidden;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(180deg,#091a28 0%,#102b39 48%,#263f49 100%);opacity:1;transition:opacity 1s,visibility 1s}
 .story-running .intro-frame{opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity .8s,transform .8s,visibility .8s}
 .story-running .opening-story{pointer-events:auto}.opening-story.story-done{opacity:0;visibility:hidden;pointer-events:none}
 .story-sky-glow{position:absolute;width:75vw;height:45vh;top:4%;left:12%;background:radial-gradient(ellipse,rgba(91,160,166,.24),transparent 68%);filter:blur(24px);animation:storyGlow 6s ease-in-out infinite alternate}
