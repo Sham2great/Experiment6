@@ -47,6 +47,34 @@ function box(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.Bo
 function sphere(parent,x,y,z,r,material){const o=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cone(parent,x,y,z,r,h,material){const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function cylinder(parent,x,y,z,r1,r2,h,material){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
+// Distant blue-white mountain silhouettes give the village a real landscape.
+const ridgeRock=mat(0x526d78),ridgeShadow=mat(0x718d94),ridgeSnow=mat(0xdce9e4);
+for(let i=0;i<14;i++){
+ const a=i/14*Math.PI*2,r=54+(i%3)*4,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ const h=9+(i%4)*2.6,rad=7+(i%3)*2;
+ const peak=cone(scene,x,h*.48,z,rad,h,i%2?ridgeRock:ridgeShadow);
+ peak.rotation.y=i*.37;
+ const cap=cone(scene,x,h*.83,z,rad*.43,h*.34,ridgeSnow);
+ cap.rotation.y=i*.37;
+}
+// A small frozen pond tucked into the eastern edge of the village.
+const pond=new THREE.Group();pond.position.set(28,-.045,-8);scene.add(pond);
+const pondShape=new THREE.Mesh(new THREE.CircleGeometry(1,48),mat(0x78aeb7,.22,.18));
+pondShape.rotation.x=-Math.PI/2;pondShape.scale.set(6.1,3.8,1);pond.add(pondShape);
+const pondRim=new THREE.Mesh(new THREE.TorusGeometry(1,.13,7,48),ridgeSnow);
+pondRim.rotation.x=Math.PI/2;pondRim.scale.set(6.1,3.8,1);pondRim.position.y=.035;pond.add(pondRim);
+for(let i=0;i<5;i++){
+ const glint=new THREE.Mesh(new THREE.BoxGeometry(.7,.018,.055),new THREE.MeshBasicMaterial({color:0xdaf5f1}));
+ glint.position.set(-2.6+i*1.15,.035,Math.sin(i*1.8)*1.3);glint.rotation.y=-.3;pond.add(glint);
+}
+// Scattered angular stones break up the open snow between buildings and trees.
+const stoneMat=mat(0x849b9a),stoneLight=mat(0xb5c9c3);
+for(let i=0;i<34;i++){
+ const a=i*2.399,r=13+(i%7)*3.4,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ if(Math.hypot(x,z+13)<9)continue;
+ const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.35+(i%3)*.12,0),i%3?stoneMat:stoneLight);
+ rock.position.set(x,.12,z);rock.rotation.set(i*.31,i*.7,i*.23);rock.scale.y=.55;scene.add(rock);
+}
 function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=(.8+(i%5)*.29)*size,r=(.66-(i%5)*.08)*size;sphere(g,Math.cos(a)*r,y,Math.sin(a)*r,.055*size,[gold,red,cream][i%3])}}return g}
 const solidObstacles=[];
 function house(x,z,scale=1,kind='cabin'){solidObstacles.push({x,z,hx:2.9*scale,hz:2.55*scale});const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);box(g,0,1.45,0,5,2.9,4.2,kind==='shop'?red:wood);const r=new THREE.Mesh(new THREE.ConeGeometry(3.55,2.25,4),roof);r.position.set(0,3.95,0);r.rotation.y=Math.PI/4;r.scale.set(1,.75,.82);r.castShadow=true;g.add(r);box(g,0,3.02,0,5.6,.18,4.8,snowMat);box(g,0,.82,2.12,.95,1.65,.12,darkWood);for(const side of [-1,1]){box(g,side*1.45,1.85,2.16,.78,.85,.1,windowGlow);box(g,side*1.45,1.85,2.23,.1,.9,.04,cream);box(g,side*1.45,1.85,2.23,.82,.08,.04,cream)}cylinder(g,1.55,4.35,-.5,.38,.42,1.15,wood);const smoke=new THREE.Group();smoke.position.set(1.55,4.95,-.5);g.add(smoke);for(let i=0;i<4;i++){const puff=sphere(smoke,Math.sin(i)*.18,i*.4,0,.22,mat(0xd8e5e7,.95));puff.userData.smoke=true}const wreath=sphere(g,0,2.3,2.23,.32,pine);sphere(g,0,2.3,2.5,.07,red);return g}
