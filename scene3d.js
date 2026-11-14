@@ -276,22 +276,23 @@ function character(coatColor,hatColor,scale=1,style={}){
  sphere(body,0,1.72,0,.39,skin);
  // Hair is deliberately visible beneath the hat and around both sides of the face.
  // Fuller hair silhouette: a dense scalp, broad fringe and substantial side/back volume.
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.414,20,14,0,Math.PI*2,0,Math.PI*.72),hair);
- hairCap.position.set(0,1.99,-.015);body.add(hairCap);
- const fringe=new THREE.Mesh(new THREE.SphereGeometry(.32,16,11),hair);
- fringe.scale.set(1.08,.48,.48);fringe.position.set(0,1.79,.315);body.add(fringe);
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.414,18,12,0,Math.PI*2,0,Math.PI*.49),hair);
+ hairCap.position.set(0,2.02,-.035);body.add(hairCap);
+ // A small, raised fringe frames the forehead without crossing the eyes.
+ const fringe=new THREE.Mesh(new THREE.SphereGeometry(.245,14,9),hair);
+ fringe.scale.set(1.12,.27,.42);fringe.position.set(0,1.99,.345);body.add(fringe);
  if(style.hairLong){
-  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.205,.92,7,12),hair);back.position.set(0,1.36,-.29);body.add(back);
+  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.205,.92,6,10),hair);back.position.set(0,1.36,-.29);body.add(back);
   for(const side of [-1,1]){
-   const sideVolume=new THREE.Mesh(new THREE.SphereGeometry(.205,14,10),hair);
-   sideVolume.scale.set(.88,1.55,.82);sideVolume.position.set(side*.30,1.63,.045);body.add(sideVolume);
-   const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.145,.72,7,10),hair);
-   lock.position.set(side*.325,1.42,.22);lock.rotation.z=side*-.06;body.add(lock);
+   const sideVolume=new THREE.Mesh(new THREE.SphereGeometry(.19,12,9),hair);
+   sideVolume.scale.set(.72,1.45,.78);sideVolume.position.set(side*.355,1.49,.015);body.add(sideVolume);
+   const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.72,6,8),hair);
+   lock.position.set(side*.39,1.38,.17);lock.rotation.z=side*-.06;body.add(lock);
   }
  }else{
   for(const side of [-1,1]){
-   const sideburn=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.28,5,9),hair);
-   sideburn.position.set(side*.345,1.68,.12);body.add(sideburn);
+   const sideburn=new THREE.Mesh(new THREE.CapsuleGeometry(.085,.24,4,8),hair);
+   sideburn.position.set(side*.37,1.64,.105);body.add(sideburn);
   }
  }
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
