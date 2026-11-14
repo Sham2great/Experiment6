@@ -1,185 +1,63 @@
-import * as THREE from "three";
-
-const host = document.querySelector("#scene");
-const loader = document.querySelector("#loader");
-const intro = document.querySelector("#intro");
-const machinePanel = document.querySelector("#machinePanel");
-const worldPanel = document.querySelector("#worldPanel");
-const beginButton = document.querySelector("#beginButton");
-const activateButton = document.querySelector("#activateButton");
-const toast = document.querySelector("#toast");
-
-let scene, camera, renderer, core, halo, portal, portalGlow, stars, machineGroup;
-let activated = false, soundOn = false, audioContext = null, oscillator = null, gain = null;
-let pointerDown = false, lastX = 0, lastY = 0, targetRotation = 0, targetTilt = 0;
-let scrollProgress = 0, clock = new THREE.Clock();
-const worldColors = {
-  eden: 0x91f0c6, inversion: 0x9c8cff, afterlight: 0xffbd87,
-  resonance: 0x7bdcf5, paradox: 0xf18dca
-};
-
-function makeGlowTexture() {
-  const c = document.createElement("canvas"); c.width = c.height = 128;
-  const ctx = c.getContext("2d");
-  const g = ctx.createRadialGradient(64,64,0,64,64,64);
-  g.addColorStop(0,"rgba(180,245,255,1)"); g.addColorStop(.12,"rgba(115,210,255,.55)");
-  g.addColorStop(.42,"rgba(90,130,255,.12)"); g.addColorStop(1,"rgba(70,100,255,0)");
-  ctx.fillStyle=g;ctx.fillRect(0,0,128,128);
-  return new THREE.CanvasTexture(c);
-}
-function init() {
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x05070d, .035);
-  camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, .1, 180);
-  camera.position.set(0, 1.2, 12);
-  renderer = new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
-  host.appendChild(renderer.domElement);
-
-  scene.add(new THREE.AmbientLight(0x8796bd,.48));
-  const key = new THREE.PointLight(0x8ceaff,22,28);key.position.set(0,3,5);scene.add(key);
-  const rim = new THREE.PointLight(0x7864ff,18,24);rim.position.set(-5,1,-4);scene.add(rim);
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(18,80),new THREE.MeshBasicMaterial({color:0x080d18,transparent:true,opacity:.65}));
-  floor.rotation.x=-Math.PI/2;floor.position.y=-2.7;scene.add(floor);
-  const grid = new THREE.GridHelper(36,50,0x29445c,0x152338);grid.position.y=-2.68;grid.material.transparent=true;grid.material.opacity=.23;scene.add(grid);
-
-  machineGroup = new THREE.Group(); scene.add(machineGroup);
-  const metal = new THREE.MeshStandardMaterial({color:0x27374c,metalness:.9,roughness:.24});
-  const darkMetal = new THREE.MeshStandardMaterial({color:0x0c1421,metalness:.85,roughness:.3});
-  const glow = new THREE.MeshStandardMaterial({color:0x8feaff,emissive:0x2d9ac7,emissiveIntensity:2.4,metalness:.35,roughness:.2});
-  const ringGeo = new THREE.TorusGeometry(1.8,.055,12,120);
-  for(let i=0;i<3;i++){
-    const ring = new THREE.Mesh(ringGeo,i===1?glow:metal);
-    ring.rotation.x = Math.PI/2 + (i-1)*.36;
-    ring.rotation.y = i*.62;
-    ring.scale.setScalar(1+i*.16);
-    ring.userData.spin = (i%2?-.16:.12);
-    machineGroup.add(ring);
-  }
-  const outer = new THREE.Mesh(new THREE.TorusGeometry(2.55,.018,8,160),new THREE.MeshBasicMaterial({color:0x86dff4,transparent:true,opacity:.42}));
-  outer.rotation.x=Math.PI/2;machineGroup.add(outer);
-  const coreGeo = new THREE.IcosahedronGeometry(.72,4);
-  core = new THREE.Mesh(coreGeo,new THREE.MeshPhysicalMaterial({color:0x8ceeff,emissive:0x1677a7,emissiveIntensity:1.3,metalness:.2,roughness:.12,transmission:.22,thickness:1.4}));
-  machineGroup.add(core);
-  const innerCore = new THREE.Mesh(new THREE.IcosahedronGeometry(.32,3),new THREE.MeshBasicMaterial({color:0xd9fbff}));
-  machineGroup.add(innerCore);
-  halo = new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0x74dfff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:.7}));
-  halo.scale.set(8,8,1);halo.position.z=-.25;machineGroup.add(halo);
-  for(let i=0;i<8;i++){
-    const bead = new THREE.Mesh(new THREE.SphereGeometry(.055,12,12),glow);
-    const a=i/8*Math.PI*2;bead.position.set(Math.cos(a)*2.18,Math.sin(a)*2.18,0);
-    bead.userData.orbit=a;bead.userData.radius=2.18;machineGroup.add(bead);
-  }
-
-  portal = new THREE.Group();portal.position.set(0,0,-7);scene.add(portal);
-  const portalRing = new THREE.Mesh(new THREE.TorusGeometry(2.1,.11,18,140),new THREE.MeshStandardMaterial({color:0x83e8ff,emissive:0x39bfe7,emissiveIntensity:2,metalness:.5,roughness:.18}));
-  portal.add(portalRing);
-  const portalInner = new THREE.Mesh(new THREE.CircleGeometry(1.98,96),new THREE.MeshBasicMaterial({color:0x132b52,transparent:true,opacity:.0,side:THREE.DoubleSide}));
-  portal.add(portalInner);
-  portalGlow = new THREE.Sprite(new THREE.SpriteMaterial({map:makeGlowTexture(),color:0x8a9aff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0}));
-  portalGlow.scale.set(9,9,1);portal.add(portalGlow);
-  portal.scale.setScalar(.001);
-
-  const count=1800, positions=new Float32Array(count*3), sizes=new Float32Array(count);
-  for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=(Math.random()-.5)*55;positions[i*3+2]=-Math.random()*90;sizes[i]=Math.random();}
-  const starGeo=new THREE.BufferGeometry();starGeo.setAttribute("position",new THREE.BufferAttribute(positions,3));starGeo.setAttribute("aSize",new THREE.BufferAttribute(sizes,1));
-  stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xb8d8ff,size:.045,transparent:true,opacity:.8,sizeAttenuation:true}));scene.add(stars);
-  animate();
-}
-function animate(){
-  requestAnimationFrame(animate);
-  const t=clock.getElapsedTime();
-  if(machineGroup){
-    machineGroup.rotation.y += (targetRotation-machineGroup.rotation.y)*.045;
-    machineGroup.rotation.x += (targetTilt-machineGroup.rotation.x)*.045;
-    machineGroup.position.y=Math.sin(t*.65)*.12;
-    machineGroup.children.forEach((obj)=>{
-      if(obj.userData.spin)obj.rotation.z+=obj.userData.spin*.006;
-      if(obj.userData.orbit!==undefined){obj.userData.orbit+=.003;obj.position.set(Math.cos(obj.userData.orbit)*obj.userData.radius,Math.sin(obj.userData.orbit)*obj.userData.radius,Math.sin(obj.userData.orbit*2)*.18);}
-    });
-    core.rotation.x=t*.12;core.rotation.y=t*.22;
-    const pulse=1+Math.sin(t*1.7)*.035;core.scale.setScalar(pulse);
-    halo.material.opacity=.52+Math.sin(t*1.5)*.16;
-  }
-  if(portal){portal.rotation.z=Math.sin(t*.25)*.04;portal.children[0].rotation.z=t*.08;}
-  if(stars)stars.rotation.y=t*.002;
-  camera.position.x += ((Math.sin(t*.12)*.24)-camera.position.x)*.01;
-  camera.position.y += ((1.2+Math.sin(t*.3)*.07)-camera.position.y)*.02;
-  camera.lookAt(0,0,-1.1);
-  if(activated){
-    const s=Math.min(1,(t-activationTime)/1.5);
-    portal.scale.setScalar(THREE.MathUtils.lerp(.001,1.0,THREE.MathUtils.smoothstep(s,0,1)));
-    portalGlow.material.opacity=THREE.MathUtils.lerp(0,.75,s);
-  }
-  renderer.render(scene,camera);
-}
-let activationTime=0;
-function showToast(message){
-  toast.textContent=message;toast.classList.add("show");
-  clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),2600);
-}
-function reveal(el){el.classList.add("visible");}
-beginButton.addEventListener("click",()=>{
-  reveal(machinePanel);machinePanel.scrollIntoView({behavior:"smooth",block:"center"});
-  showToast("THRESHOLD DETECTED — APPROACH THE MACHINE");
-});
-activateButton.addEventListener("click",()=>{
-  if(activated){worldPanel.scrollIntoView({behavior:"smooth"});return;}
-  activated=true;activationTime=clock.getElapsedTime();
-  activateButton.innerHTML="GATEWAY OPEN <span>↗</span>";
-  document.querySelector(".panel-status").innerHTML="<i></i> CONNECTION ESTABLISHED";
-  reveal(worldPanel);
-  setTimeout(()=>worldPanel.scrollIntoView({behavior:"smooth",block:"start"}),650);
-  showToast("REALITY BREACH DETECTED — FIVE DESTINATIONS AVAILABLE");
-  if(soundOn)playTone(110,.7);
-});
-document.querySelectorAll(".world-card").forEach(card=>{
-  card.addEventListener("click",()=>{
-    const id=card.dataset.world;
-    document.querySelectorAll(".world-card").forEach(c=>c.classList.toggle("active",c===card));
-    const color=worldColors[id];
-    core.material.color.setHex(color);core.material.emissive.setHex(color);
-    halo.material.color.setHex(color);portal.children[0].material.color.setHex(color);
-    portal.children[0].material.emissive.setHex(color);
-    portalGlow.material.color.setHex(color);
-    document.querySelector("#worldReadout").textContent="CURRENT DESTINATION: "+id.toUpperCase();
-    showToast(id.toUpperCase()+" SELECTED — REALITY SHARD SYNCHRONIZED");
-    if(soundOn)playTone(160+Object.keys(worldColors).indexOf(id)*35,.35);
-  });
-});
-host.addEventListener("pointerdown",e=>{pointerDown=true;lastX=e.clientX;lastY=e.clientY;host.setPointerCapture?.(e.pointerId);});
-host.addEventListener("pointermove",e=>{if(!pointerDown)return;targetRotation+=(e.clientX-lastX)*.006;targetTilt=THREE.MathUtils.clamp(targetTilt+(e.clientY-lastY)*.004,-.55,.55);lastX=e.clientX;lastY=e.clientY;});
-host.addEventListener("pointerup",()=>pointerDown=false);
-host.addEventListener("pointercancel",()=>pointerDown=false);
-window.addEventListener("scroll",()=>{
-  const y=window.scrollY;
-  if(y>innerHeight*.42)reveal(machinePanel);
-  if(activated&&y>innerHeight*1.15)reveal(worldPanel);
-});
-window.addEventListener("resize",()=>{
-  if(!camera||!renderer)return;
-  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-});
-function playTone(freq,duration){
-  if(!audioContext)return;
-  const o=audioContext.createOscillator(),g=audioContext.createGain();
-  o.type="sine";o.frequency.value=freq;g.gain.setValueAtTime(.0001,audioContext.currentTime);
-  g.gain.exponentialRampToValueAtTime(.045,audioContext.currentTime+.04);
-  g.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+duration);
-  o.connect(g);g.connect(audioContext.destination);o.start();o.stop(audioContext.currentTime+duration+.03);
-}
-document.querySelector("#soundToggle").addEventListener("click",()=>{
-  soundOn=!soundOn;document.querySelector("#soundLabel").textContent=soundOn?"SOUND ON":"SOUND OFF";
-  if(soundOn){
-    audioContext=audioContext||new (window.AudioContext||window.webkitAudioContext)();
-    if(audioContext.state==="suspended")audioContext.resume();
-    playTone(220,.5);showToast("AUDIO CHANNEL ENABLED");
-  }else showToast("AUDIO CHANNEL MUTED");
-});
-init();
-window.addEventListener("load",()=>setTimeout(()=>loader.classList.add("done"),550));
+(() => {
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d'),aurora=document.getElementById('aurora');
+let w,h,dpr,rotation=0,targetRotation=0,drag=false,lastX=0,lastY=0,snow=[],burst=0,night=true,auroraOn=true,frame=0,fireOn=false,audio=null;
+const rand=(a,b)=>Math.random()*(b-a)+a;
+function resize(){w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);snow=Array.from({length:Math.max(100,Math.floor(w*h/5500))},()=>flake(true))}
+function flake(init=false){return{x:rand(0,w),y:init?rand(0,h):rand(-30,-5),r:rand(1,3.2),v:rand(.35,1.5),drift:rand(-.5,.5),alpha:rand(.35,.9),phase:rand(0,7)}}
+function rounded(x,y,ww,hh,r){ctx.beginPath();ctx.roundRect(x,y,ww,hh,r)}
+function draw(){frame++;ctx.clearRect(0,0,w,h);const cx=w/2,cy=h*.57,scale=Math.min(w/850,h/680,1.15);ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);
+const rx=270,ry=230;
+// globe shadow and glass silhouette
+ctx.save();ctx.translate(0,18);ctx.scale(1,.24);let sh=ctx.createRadialGradient(0,0,20,0,0,300);sh.addColorStop(0,'rgba(0,0,0,.48)');sh.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sh;ctx.beginPath();ctx.arc(0,0,300,0,Math.PI*2);ctx.fill();ctx.restore();
+// pedestal
+let pg=ctx.createLinearGradient(-150,190,150,265);pg.addColorStop(0,'#6c503b');pg.addColorStop(.45,'#e1c28b');pg.addColorStop(1,'#4d3a34');ctx.fillStyle=pg;ctx.beginPath();ctx.roundRect(-155,190,310,58,18);ctx.fill();ctx.fillStyle='rgba(255,245,214,.35)';ctx.fillRect(-125,201,250,2);ctx.fillStyle='#a77b54';ctx.beginPath();ctx.roundRect(-130,239,260,22,9);ctx.fill();
+// clipping sphere
+ctx.save();ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.clip();
+let sky=ctx.createLinearGradient(0,-ry,0,ry);sky.addColorStop(0,night?'#07192f':'#92c6d1');sky.addColorStop(.52,night?'#173b50':'#c5e3dd');sky.addColorStop(1,night?'#e2eef0':'#f7e8c7');ctx.fillStyle=sky;ctx.fillRect(-rx,-ry,rx*2,ry*2);
+// distant hills
+ctx.fillStyle=night?'#244e5d':'#6c9b93';ctx.beginPath();ctx.moveTo(-300,100);for(let x=-300;x<=300;x+=15)ctx.lineTo(x,90+Math.sin((x+rotation*40)/75)*25+Math.cos(x/38)*12);ctx.lineTo(300,250);ctx.lineTo(-300,250);ctx.fill();
+ctx.fillStyle=night?'#153b4a':'#8eb5a7';ctx.beginPath();ctx.moveTo(-300,140);for(let x=-300;x<=300;x+=12)ctx.lineTo(x,135+Math.sin((x-rotation*28)/65)*20);ctx.lineTo(300,250);ctx.lineTo(-300,250);ctx.fill();
+// aurora ribbons
+if(auroraOn&&night){for(let k=0;k<3;k++){ctx.beginPath();for(let x=-300;x<=300;x+=8){let y=-115+k*23+Math.sin(x/60+frame*.012+k)*17+Math.sin(x/27+frame*.008)*6;x===-300?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.strokeStyle=['rgba(102,255,190,.16)','rgba(83,214,207,.13)','rgba(125,181,255,.12)'][k];ctx.lineWidth=19;ctx.shadowBlur=22;ctx.shadowColor='#6cffce';ctx.stroke()}ctx.shadowBlur=0}
+// moon and stars
+if(night){ctx.fillStyle='#f5e8bd';ctx.shadowBlur=24;ctx.shadowColor='#f5e8bd';ctx.beginPath();ctx.arc(160,-145,22,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;for(let i=0;i<65;i++){let x=((i*83)%530)-265,y=((i*47)%210)-195;ctx.globalAlpha=.3+.5*Math.sin(frame*.04+i);ctx.fillStyle='#fff';ctx.fillRect(x,y,1.5,1.5)}ctx.globalAlpha=1}else{let sun=ctx.createRadialGradient(160,-140,2,160,-140,55);sun.addColorStop(0,'#fff8d7');sun.addColorStop(1,'rgba(255,235,172,0)');ctx.fillStyle=sun;ctx.beginPath();ctx.arc(160,-140,55,0,7);ctx.fill()}
+// village ground
+ctx.fillStyle=night?'#e6f0ed':'#fff8e9';ctx.beginPath();ctx.moveTo(-280,140);ctx.quadraticCurveTo(-90,100,40,145);ctx.quadraticCurveTo(180,115,280,140);ctx.lineTo(300,250);ctx.lineTo(-300,250);ctx.fill();
+// trees
+function tree(x,y,s){ctx.fillStyle='#123f3d';for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x,y-s*(1.4-i*.38));ctx.lineTo(x-s*(.42-i*.08),y-s*(.45-i*.12));ctx.lineTo(x+s*(.42-i*.08),y-s*(.45-i*.12));ctx.closePath();ctx.fill()}ctx.fillStyle='#75533c';ctx.fillRect(x-4,y-8,8,15);for(let i=0;i<5;i++){ctx.fillStyle=['#f5d99b','#ef8d80','#8be0c1'][i%3];ctx.beginPath();ctx.arc(x+Math.sin(i*4)*s*.18,y-s*.5-i*9,3,0,7);ctx.fill()}}
+tree(-205,135,74);tree(205,142,60);tree(-135,150,42);
+// cabin
+ctx.save();ctx.translate(-95,82);ctx.fillStyle='#7e5140';ctx.fillRect(-43,-15,86,72);ctx.fillStyle='#4b3440';ctx.beginPath();ctx.moveTo(-55,-12);ctx.lineTo(0,-58);ctx.lineTo(55,-12);ctx.closePath();ctx.fill();ctx.fillStyle='#f5d99b';ctx.fillRect(-29,0,18,23);ctx.fillRect(12,0,18,23);ctx.fillStyle='#392f34';ctx.fillRect(-7,20,16,37);ctx.shadowBlur=18;ctx.shadowColor='#ffc96b';ctx.fillStyle='#ffdb8e';ctx.fillRect(-27,2,14,19);ctx.fillRect(14,2,14,19);ctx.shadowBlur=0;ctx.restore();
+// workshop
+ctx.save();ctx.translate(92,90);ctx.fillStyle='#9c6248';ctx.fillRect(-43,-8,86,65);ctx.fillStyle='#5a3c42';ctx.beginPath();ctx.moveTo(-52,-7);ctx.lineTo(-35,-45);ctx.lineTo(35,-45);ctx.lineTo(52,-7);ctx.closePath();ctx.fill();ctx.fillStyle='#d6b17c';ctx.fillRect(-16,15,32,42);ctx.fillStyle='#ffdb8e';ctx.shadowBlur=14;ctx.shadowColor='#ffc96b';ctx.fillRect(-35,2,17,20);ctx.fillRect(18,2,17,20);ctx.shadowBlur=0;ctx.restore();
+// giant tree center
+tree(0,155,105);ctx.fillStyle='#f7d98c';ctx.shadowBlur=24;ctx.shadowColor='#ffe7a1';ctx.beginPath();ctx.arc(0,40,9,0,7);ctx.fill();ctx.shadowBlur=0;
+// snow bank foreground
+ctx.fillStyle='rgba(255,255,255,.94)';ctx.beginPath();ctx.moveTo(-280,160);ctx.quadraticCurveTo(-100,140,0,165);ctx.quadraticCurveTo(150,143,280,165);ctx.lineTo(280,250);ctx.lineTo(-280,250);ctx.fill();
+// snowflakes in globe
+for(const f of snow){f.y+=f.v+burst*.015;f.x+=f.drift+Math.sin(frame*.01+f.phase)*.35+rotation*.0004;if(f.y>ry+5){f.y=-ry;f.x=rand(-rx,rx)}if(f.x>rx)f.x=-rx;if(f.x<-rx)f.x=rx;ctx.globalAlpha=f.alpha;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill()}ctx.globalAlpha=1;
+ctx.restore();
+// glass sheen
+ctx.strokeStyle='rgba(227,249,255,.62)';ctx.lineWidth=2.2;ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,.27)';ctx.lineWidth=8;ctx.beginPath();ctx.ellipse(-8,-3,rx-8,ry-8,-.08,3.8,5.2);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=15;ctx.beginPath();ctx.ellipse(0,0,rx-3,ry-3,0,5.3,5.75);ctx.stroke();ctx.restore();burst*=.94;rotation+=(targetRotation-rotation)*.08;requestAnimationFrame(draw)}
+resize();draw();addEventListener('resize',resize);
+canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!drag)return;targetRotation+=(e.clientX-lastX)*.008;lastX=e.clientX;lastY=e.clientY;});canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);
+function shake(){burst=24;for(const f of snow){f.v+=rand(2,8);f.drift+=rand(-3,3)}setTimeout(()=>snow.forEach(f=>{f.v=rand(.35,1.5);f.drift=rand(-.5,.5)}),900)}
+document.getElementById('shakeBtn').onclick=shake;document.getElementById('modeBtn').onclick=e=>{night=!night;e.currentTarget.innerHTML=night?'☾ <span>Night mode</span>':'☀ <span>Day mode</span>'};document.getElementById('auroraBtn').onclick=e=>{auroraOn=!auroraOn;aurora.classList.toggle('off',!auroraOn);e.currentTarget.innerHTML=auroraOn?'✧ <span>Aurora on</span>':'✧ <span>Aurora off</span>'};
+function countdown(){const now=new Date(),year=now.getFullYear(),christmas=new Date(year,11,25),ms=christmas-now<0?new Date(year+1,11,25)-now:christmas-now;const vals=[Math.floor(ms/86400000),Math.floor(ms/3600000)%24,Math.floor(ms/60000)%60,Math.floor(ms/1000)%60];['days','hours','minutes','seconds'].forEach((id,i)=>document.getElementById(id).textContent=String(vals[i]).padStart(2,'0'))}countdown();setInterval(countdown,1000);
+const backdrop=document.getElementById('modalBackdrop'),content=document.getElementById('modalContent');function open(html){content.innerHTML=html;backdrop.classList.add('open')}function close(){backdrop.classList.remove('open')}document.getElementById('closeModal').onclick=close;backdrop.addEventListener('click',e=>{if(e.target===backdrop)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+document.querySelectorAll('[data-place]').forEach(btn=>btn.onclick=()=>{const place=btn.dataset.place;shake();if(place==='cabin')open('<div class="modal-kicker">A WARM LITTLE WELCOME</div><h2>Come in, get cozy.</h2><p>The fire is crackling, the cocoa is warm, and there is always room for one more by the tree.</p><p>✦ Your tiny reminder: the best part of Christmas is who you share it with.</p><button class="action" id="cocoa">Make a little wish</button>');if(place==='workshop')open('<div class="modal-kicker">ELF TRAINING • LEVEL 1</div><h2>Catch the presents!</h2><p>Move your sleigh with your finger or mouse. Catch as many gifts as you can before time runs out.</p><div class="game-area"><canvas id="game" width="420" height="260"></canvas></div><p id="scoreline">Gifts caught: 0 · 20 seconds</p><button class="action" id="startGame">Start game</button>');if(place==='tree')open('<div class="modal-kicker">A WISH FOR THE WORLD</div><h2>Make a snowflake.</h2><p>Every snowflake is different. Choose your pattern and create one of your own.</p><label class="hint">NUMBER OF BRANCHES</label><input class="field" id="branches" type="range" min="4" max="12" value="6"><canvas class="snowflake-preview" id="flakeCanvas" width="300" height="300"></canvas><button class="action" id="newFlake">Make another</button><button class="action" id="saveFlake">Save as PNG ↓</button>');});
+document.getElementById('postcardBtn').onclick=postcard;
+function postcard(){open('<div class="modal-kicker">A NOTE FROM YOUR LITTLE WINTER WORLD</div><h2>Your holiday postcard</h2><label class="hint">WHO IS IT FOR?</label><input class="field" id="toName" placeholder="Someone special"><label class="hint">YOUR MESSAGE</label><textarea class="field" id="message" rows="3" placeholder="Wishing you a little magic this Christmas..."></textarea><div class="postcard" id="card"><div>❄ ✦ ❄</div><h3>Merry Christmas</h3><p id="cardMessage">Wishing you a little magic this Christmas.</p><small id="cardTo">TO SOMEONE SPECIAL</small></div><button class="action" id="downloadCard">Download postcard PNG</button><button class="action" id="shareCard">Share postcard</button>');}
+document.addEventListener('click',e=>{if(e.target.id==='cocoa'){e.target.textContent='✦ Wish sent into the winter sky';e.target.disabled=true}
+if(e.target.id==='newFlake'||e.target.id==='saveFlake'){drawFlake();if(e.target.id==='saveFlake'){const a=document.createElement('a');a.download='my-snowflake.png';a.href=document.getElementById('flakeCanvas').toDataURL('image/png');a.click()}}
+if(e.target.id==='startGame')startGame();
+if(e.target.id==='downloadCard')downloadPostcard();
+if(e.target.id==='shareCard')sharePostcard();});
+document.addEventListener('input',e=>{if(e.target.id==='branches')drawFlake();if(e.target.id==='toName'||e.target.id==='message'){const n=document.getElementById('cardTo'),m=document.getElementById('cardMessage');if(n)n.textContent='TO '+(document.getElementById('toName').value||'SOMEONE SPECIAL').toUpperCase();if(m)m.textContent=document.getElementById('message').value||'Wishing you a little magic this Christmas.'}});
+function drawFlake(){const c=document.getElementById('flakeCanvas');if(!c)return;const x=c.getContext('2d'),n=Number(document.getElementById('branches')?.value||6);x.clearRect(0,0,300,300);x.save();x.translate(150,150);x.strokeStyle='#d7f5fa';x.lineWidth=3;x.lineCap='round';for(let i=0;i<n;i++){x.save();x.rotate(i*Math.PI*2/n);x.beginPath();x.moveTo(0,0);x.lineTo(0,-115);x.moveTo(0,-42);x.lineTo(-17,-61);x.moveTo(0,-42);x.lineTo(17,-61);x.moveTo(0,-78);x.lineTo(-13,-93);x.moveTo(0,-78);x.lineTo(13,-93);x.stroke();x.restore()}x.restore()}
+let gameTimer=null;function startGame(){const c=document.getElementById('game'),x=c.getContext('2d'),line=document.getElementById('scoreline');if(gameTimer)clearInterval(gameTimer);let sleigh=210,items=[],score=0,time=20,active=true;function move(e){const r=c.getBoundingClientRect();sleigh=(e.clientX-r.left)/r.width*c.width}c.onpointermove=move;c.ontouchmove=e=>{const r=c.getBoundingClientRect();sleigh=(e.touches[0].clientX-r.left)/r.width*c.width;e.preventDefault()};function tick(){x.clearRect(0,0,420,260);x.fillStyle='#f5d99b';x.font='26px sans-serif';x.fillText('✦',sleigh-12,244);x.fillStyle='#fff';for(const it of items){it.y+=it.v;x.fillText('🎁',it.x,it.y);if(it.y>220&&Math.abs(it.x-sleigh)<30){it.y=300;score++}}items=items.filter(it=>it.y<275);if(Math.random()<.07)items.push({x:rand(20,400),y:-10,v:rand(2,4)});line.textContent='Gifts caught: '+score+' · '+time+' seconds';if(!active)return;requestAnimationFrame(tick)}tick();gameTimer=setInterval(()=>{time--;if(time<=0){clearInterval(gameTimer);active=false;line.textContent='Time! You caught '+score+' gifts. Well done!'}},1000)}
+document.getElementById('soundBtn').onclick=()=>{if(!audio){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC()}if(audio.state==='suspended')audio.resume();fireOn=!fireOn;const btn=document.querySelector('#soundBtn span');btn.textContent=fireOn?'Sound on':'Sound off';if(fireOn){const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=68;g.gain.value=.012;o.connect(g);g.connect(audio.destination);o.start();window.fireOsc=o;window.fireGain=g}else if(window.fireOsc){window.fireOsc.stop();window.fireOsc=null}};
+function makePostcardCanvas(){const c=document.createElement('canvas');c.width=1200;c.height=800;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,1200,800);g.addColorStop(0,'#102f43');g.addColorStop(1,'#071522');x.fillStyle=g;x.fillRect(0,0,1200,800);for(let i=0;i<180;i++){x.fillStyle='rgba(255,255,255,'+rand(.2,.9)+')';x.beginPath();x.arc(rand(0,1200),rand(0,800),rand(1,3),0,7);x.fill()}x.textAlign='center';x.fillStyle='#f5d99b';x.font='32px Georgia';x.fillText('❄  ✦  ❄',600,170);x.font='bold 92px Georgia';x.fillText('Merry Christmas',600,330);x.fillStyle='#f5f4ec';x.font='34px Georgia';const msg=document.getElementById('message')?.value||'Wishing you a little magic this Christmas.';wrapText(x,msg,600,440,920,52);x.font='24px Arial';x.fillStyle='#d9c18e';x.fillText('TO '+(document.getElementById('toName')?.value||'SOMEONE SPECIAL').toUpperCase(),600,690);return c}function wrapText(x,t,cx,y,max,line){const words=t.split(' ');let row='';for(const word of words){const test=row+word+' ';if(x.measureText(test).width>max&&row){x.fillText(row,cx,y);row=word+' ';y+=line}else row=test}x.fillText(row,cx,y)}
+function downloadPostcard(){const c=makePostcardCanvas(),a=document.createElement('a');a.download='christmas-postcard.png';a.href=c.toDataURL('image/png');a.click()}
+async function sharePostcard(){const c=makePostcardCanvas();c.toBlob(async b=>{const file=new File([b],'christmas-postcard.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'Merry Christmas',text:'A little Christmas magic for you.'})}catch(e){}}else{downloadPostcard();const msg=document.getElementById('shareCard');msg.textContent='Downloaded! Attach it to your message.'}},'image/png')}
+})();
