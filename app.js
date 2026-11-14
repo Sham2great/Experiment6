@@ -81,3 +81,60 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
  window.addEventListener('winter-gift-found',()=>{found=Math.min(6,found+1);if(found===6){bubble.querySelector('span').textContent='YOU DID IT! All the presents are home. Go see the wishing tree!';bubble.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),7000)}});
  document.getElementById('enterWorld')?.addEventListener('click',()=>setTimeout(speak,1800));
 })();
+
+
+/* THE MISSING GIFTS — opening story cinematic */
+(()=>{
+ const intro=document.getElementById('introScreen');
+ if(!intro)return;
+ const frame=intro.querySelector('.intro-frame');
+ const story=document.createElement('div');
+ story.id='openingStory';
+ story.className='opening-story';
+ story.innerHTML=`
+  <div class="story-sky-glow"></div>
+  <div class="story-landscape"><i class="story-mountain m-one"></i><i class="story-mountain m-two"></i><i class="story-pine p-one"></i><i class="story-pine p-two"></i><i class="story-lamp"></i></div>
+  <div class="story-character" aria-hidden="true"><i class="anto-hat"></i><i class="anto-head"><b></b></i><i class="anto-scarf"></i><i class="anto-coat"></i><i class="anto-arm"></i><i class="anto-leg leg-one"></i><i class="anto-leg leg-two"></i></div>
+  <div class="story-gifts" aria-hidden="true"><i>🎁</i><i>🎁</i><i>🎁</i></div>
+  <div class="story-copy"><small> A LITTLE CHRISTMAS STORY </small><h2 id="storyLine">Christmas was almost here…</h2><p id="storySubline">And Anto could hardly wait.</p></div>
+  <button class="story-skip" type="button">SKIP STORY ↗</button>
+  <div class="story-progress"><i></i></div>`;
+ intro.appendChild(story);
+ intro.classList.add('story-running');
+ const lines=[
+  ['Christmas was almost here…','And Anto could hardly wait.'],
+  ['But something was wrong.','Her presents had disappeared from their usual place.'],
+  ['She searched high and low…','Past the little houses, through the snow, and around the village.'],
+  ['Not a single gift.','Anto was starting to feel a little sad.'],
+  ['Maybe you can help?','Six missing presents are hidden somewhere in the village.']
+ ];
+ let step=0,finished=false,timers=[];
+ const finish=()=>{
+  if(finished)return;finished=true;timers.forEach(clearTimeout);
+  intro.classList.remove('story-running');intro.classList.add('story-finished');
+  frame.querySelector('h1').innerHTML='Twain\'s<br><em>Christmas</em>';
+  const copy=frame.querySelector('.intro-copy');if(copy)copy.innerHTML='Anto can’t find her Christmas presents.<br>Will you help her find all six?';
+  const button=document.getElementById('enterWorld');if(button)button.innerHTML='<span>HELP ANTO FIND HER GIFTS</span><b>↗</b>';
+  const kicker=frame.querySelector('.intro-kicker');if(kicker)kicker.textContent='A LITTLE CHRISTMAS MYSTERY';
+  const overline=frame.querySelector('.intro-overline');if(overline)overline.innerHTML='<span></span> THE VILLAGE NEEDS A LITTLE HELP <span></span>';
+  story.classList.add('story-done');
+ };
+ const show=(i)=>{
+  if(finished)return;
+  step=i;
+  const [title,sub]=lines[i];
+  const heading=document.getElementById('storyLine'),paragraph=document.getElementById('storySubline');
+  heading.classList.remove('story-text-in');paragraph.classList.remove('story-text-in');
+  void heading.offsetWidth;
+  heading.textContent=title;paragraph.textContent=sub;
+  heading.classList.add('story-text-in');paragraph.classList.add('story-text-in');
+  story.dataset.scene=String(i);
+  if(i===1)story.classList.add('gifts-vanish');
+  if(i===3)story.classList.add('anto-sad');
+  if(i===4){story.classList.add('story-final');const skip=story.querySelector('.story-skip');skip.textContent='CONTINUE ↗';}
+  if(i<lines.length-1)timers.push(setTimeout(()=>show(i+1),2600));
+  else timers.push(setTimeout(finish,2500));
+ };
+ story.querySelector('.story-skip').addEventListener('click',finish);
+ show(0);
+})();
