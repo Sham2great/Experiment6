@@ -220,7 +220,7 @@ function updateTreeFinale(now,dt){
  if(!treeFinale.active)return;
  const e=(now-treeFinale.started)/1000,treeZ=-13,baseZ=-10.45,smooth=v=>v*v*(3-2*v),clamp=THREE.MathUtils.clamp;
  const chars=[player,friends[0].obj],xs=[-1.05,1.05],starts=[-3.5,3.5];
- const villagers=[player,friends[0].obj,friends[1].obj,friends[2].obj],partySpots=[[-4.1,-9.1],[-1.45,-8.25],[1.45,-8.25],[4.1,-9.1]];
+ const villagers=[player,...friends.map(f=>f.obj)],partySpots=[[-5.8,-9.1],[-3.9,-7.8],[-1.95,-7.1],[0,-6.8],[1.95,-7.1],[3.9,-7.8],[5.8,-9.1],[0,-18.1]];
  if(!finaleLadders.length)finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());
  const walk=smooth(clamp(e/4.1,0,1));
  chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ,walk));ch.rotation.y=Math.PI;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=e<4.1?-.9:0)});
@@ -302,7 +302,11 @@ const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'female',hair
 const friends=[
  {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairLong:true,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
  {obj:character(0x477a65,0x9b5147,.8,{name:'ELI',gender:'male',hair:0x302923,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
- {obj:character(0x78608c,0xb47a38,.75,{name:'MILA',gender:'female',hair:0x8b5836,hairLong:true,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4}
+ {obj:character(0x78608c,0xb47a38,.75,{name:'MILA',gender:'female',hair:0x8b5836,hairLong:true,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
+ {obj:character(0x3f7185,0x9a5547,.78,{name:'NOAH',gender:'male',hair:0x382b24,scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2},
+ {obj:character(0xb36b53,0x4b6f62,.77,{name:'LUNA',gender:'female',hair:0x493126,hairLong:true,scarf:0xe9d4a7}),center:new THREE.Vector3(-10,0,-21),radius:1.45,speed:.32,phase:3.1},
+ {obj:character(0x6b658c,0x8c5c43,.74,{name:'THEO',gender:'male',hair:0x59402e,scarf:0xd9b7a0}),center:new THREE.Vector3(21,0,-6),radius:1.3,speed:.29,phase:5.2},
+ {obj:character(0x8a6650,0x527b70,.76,{name:'IVY',gender:'female',hair:0x30251f,hairLong:true,scarf:0xe8c98c}),center:new THREE.Vector3(-21,0,-6),radius:1.4,speed:.35,phase:2.4}
 ];
 friends.forEach(f=>scene.add(f.obj));
 // Anto's black cat with animated legs and a tiny Santa hat.
