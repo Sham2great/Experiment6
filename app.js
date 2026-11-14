@@ -58,3 +58,27 @@ function makeCard(){const c=document.createElement('canvas');c.width=1200;c.heig
 function downloadPostcard(){const a=document.createElement('a');a.download='twains-christmas-postcard.png';a.href=makeCard().toDataURL('image/png');a.click()}
 async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const file=new File([blob],'twains-christmas-postcard.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'Merry Christmas'})}catch(e){}}else downloadPostcard()})}
 })();
+/* OTHERWORLD expansion: a living companion, story journal and unlockable finale */
+(()=>{
+ const style=document.createElement('style');style.textContent='';
+ const journal=document.createElement('button');journal.id='storyJournal';journal.innerHTML='<span>✧</span><b>FIELD JOURNAL</b><small>YOUR STORY SO FAR</small>';
+ const companion=document.createElement('button');companion.id='winterCompanion';companion.setAttribute('aria-label','Talk to Pip the snow fox');companion.innerHTML='<span class="pip-tail"></span><span class="pip-ear e1"></span><span class="pip-ear e2"></span><span class="pip-face">•ᴗ•</span><span class="pip-scarf"></span><i>✦</i>';
+ const bubble=document.createElement('div');bubble.id='pipBubble';bubble.innerHTML='<b>PIP</b><span>Hey, Twain! I have a feeling there are secrets hidden around here...</span>';
+ document.body.append(journal,companion,bubble);
+ let found=0;
+ const saved=Number(localStorage.getItem('otherworld-gifts-found')||0);
+ found=Math.min(6,saved);
+ function renderJournal(){
+  const chapters=[['01','A WORLD ASLEEP','Enter the winter village and find your way around.','Complete'],['02','THE LOST DELIVERIES','Find all six missing presents scattered through the snow.',found+'/6 presents'],['03','A TREE OF WISHES','Decorate the wishing tree until it feels like yours.','Explore the tree'],['04','THE LAST STAR','A final little surprise waits when every present is home.',''+(found===6?'UNLOCKED':'LOCKED')]];
+  const rows=chapters.map((x,i)=>'<div class="journal-row"><span class="journal-number">'+x[0]+'</span><div><b>'+x[1]+'</b><p>'+x[2]+'</p><small>'+x[3]+'</small></div><i>'+(i===1&&found===6||i===3&&found===6?'✦':'◇')+'</i></div>').join('');
+  openModal('<div class="modal-kicker">A RECORD OF YOUR ADVENTURE</div><h2>The winter <em>journal.</em></h2><p>Every little discovery brings this world a little more to life.</p><div class="journal-progress"><span>YOUR CHRISTMAS STORY</span><b>'+found+' / 6</b><div><i style="width:'+(found/6*100)+'%"></i></div></div>'+rows+(found===6?'<div class="journal-unlock">✦ THE FINAL STAR IS AWAKE <p>All six presents are home. Return to the wishing tree for your surprise.</p></div>':''));
+ }
+ journal.addEventListener('click',renderJournal);
+ const lines=['Psst... I saw something sparkle near the trees.','The village gets prettier every time you find a present.','I think the wishing tree has a surprise for you.','If you get lost, just follow the little lights.','You know what makes this place magical? You being here.'];
+ let line=0,timer;
+ function speak(){bubble.classList.add('show');bubble.querySelector('span').textContent=lines[line++%lines.length];clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),4800)}
+ companion.addEventListener('click',speak);
+ window.addEventListener('world-interact',e=>{if(e.detail?.place==='cabin'){setTimeout(()=>{bubble.querySelector('span').textContent='This cabin feels like the perfect place to make a memory.';bubble.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),4800)},150)}});
+ window.addEventListener('winter-gift-found',()=>{found=Math.min(6,found+1);localStorage.setItem('otherworld-gifts-found',found);if(found===6){bubble.querySelector('span').textContent='YOU DID IT! All the presents are home. Go see the wishing tree!';bubble.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>bubble.classList.remove('show'),7000)}});
+ document.getElementById('enterWorld')?.addEventListener('click',()=>setTimeout(speak,1800));
+})();
