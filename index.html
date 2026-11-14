@@ -1,23 +1,27 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071522">
-<meta name="description" content="A little Christmas world inside a snowglobe."><title>The North Pole Snowglobe</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071522">
+<meta name="description" content="Twain's Christmas — an interactive winter world."><title>Twain's Christmas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-<div class="aurora" id="aurora"></div><canvas id="world" aria-label="Interactive snowy North Pole village snowglobe"></canvas>
+<body class="christmas-world">
+<div class="aurora" id="aurora"></div>
+<canvas id="world" aria-hidden="true"></canvas>
+<div id="three-stage" aria-label="Twain's interactive 3D Christmas village"><div class="scene-loading" id="sceneLoading">BUILDING TWAIN'S WINTER WORLD…</div></div>
 <div class="shade"></div>
-<header class="top"><a class="brand" href="#"><span class="brand-star">✳</span><span>THE NORTH POLE<br><small>SNOWGLOBE</small></span></a><div class="top-right"><span class="live"><i></i> NORTH POLE • LIVE</span><button class="icon-btn" id="soundBtn" aria-label="Toggle fireplace sound">♫ <span>Sound off</span></button></div></header>
+<div class="intro-screen" id="introScreen"><div class="intro-stars">✦　✧　✦</div><p>THIS CHRISTMAS, A WORLD IS WAITING</p><h1>Twain's<br><em>Christmas</em></h1><span>A little wonder, made just for you.</span><button id="enterWorld">ENTER THE WORLD <b>↗</b></button><small>TURN YOUR SOUND ON FOR THE FULL EXPERIENCE</small></div>
+<header class="top"><a class="brand" href="#"><span class="brand-star">✳</span><span>TWAIN'S<br><small>CHRISTMAS WORLD</small></span></a><div class="top-right"><span class="live"><i></i> NORTH POLE • LIVE</span><button class="icon-btn" id="soundBtn" aria-label="Toggle sound">♫ <span>Sound off</span></button></div></header>
 <main>
-<section class="hero"><p class="eyebrow">✦ A LITTLE CHRISTMAS MAGIC ✦</p><h1>Christmas is<br><em>in the air.</em></h1><p class="sub">A tiny world of wonder, waiting for you to shake things up.</p><div class="countdown"><div class="count-label">THE BIG DAY ARRIVES IN</div><div class="digits"><div><strong id="days">00</strong><span>DAYS</span></div><b>:</b><div><strong id="hours">00</strong><span>HOURS</span></div><b>:</b><div><strong id="minutes">00</strong><span>MINUTES</span></div><b>:</b><div><strong id="seconds">00</strong><span>SECONDS</span></div></div></div></section>
-<div class="scene-hint"><span class="mouse">↔</span> DRAG TO TURN <span>•</span> SHAKE FOR SNOW</div>
-<div class="controls"><button id="shakeBtn">❄ <span>Shake globe</span></button><button id="modeBtn">☾ <span>Night mode</span></button><button id="auroraBtn">✧ <span>Aurora on</span></button></div>
-<section class="landmarks" aria-label="Explore the village"><button data-place="cabin"><span>⌂</span><b>THE CABIN</b><small>Warm wishes inside</small></button><button data-place="workshop"><span>⚒</span><b>TOY WORKSHOP</b><small>Made with magic</small></button><button data-place="tree"><span>✦</span><b>CHRISTMAS TREE</b><small>Make a little wish</small></button></section>
+<section class="hero"><p class="eyebrow">✦ THE MOST WONDERFUL TIME OF THE YEAR ✦</p><h1>Twain's <em>Christmas.</em></h1><p class="sub">Your own little world. Your own Christmas magic.</p><div class="countdown"><div class="count-label">UNTIL CHRISTMAS MORNING</div><div class="digits"><div><strong id="days">00</strong><span>DAYS</span></div><b>:</b><div><strong id="hours">00</strong><span>HOURS</span></div><b>:</b><div><strong id="minutes">00</strong><span>MINUTES</span></div><b>:</b><div><strong id="seconds">00</strong><span>SECONDS</span></div></div></div></section>
+<div class="scene-hint" id="sceneHint">WASD / ARROW KEYS TO MOVE <span>•</span> DRAG TO LOOK AROUND</div>
+<div class="controls"><button id="cinematicBtn">◉ <span>Cinematic view</span></button><button id="modeBtn">☾ <span>Night mode</span></button><button id="auroraBtn">✧ <span>Aurora on</span></button></div>
+<div class="mobile-pad" aria-label="Character movement controls"><button data-move="forward">▲</button><div><button data-move="left">◀</button><button data-move="back">▼</button><button data-move="right">▶</button></div></div>
+<section class="landmarks" aria-label="Explore the village"><button data-place="cabin"><span>⌂</span><b>THE CABIN</b><small>Warm wishes inside</small></button><button data-place="workshop"><span>⚒</span><b>TOY WORKSHOP</b><small>Meet the elves</small></button><button data-place="tree"><span>✦</span><b>WISHING TREE</b><small>Make a little wish</small></button></section>
 </main>
-<footer><span>MADE WITH A LITTLE EXTRA MAGIC</span><button id="postcardBtn">MAKE A HOLIDAY POSTCARD ↗</button></footer>
+<footer><span>A LITTLE CHRISTMAS WORLD, MADE FOR TWAIN</span><button id="postcardBtn">MAKE A HOLIDAY POSTCARD ↗</button></footer>
 <div class="modal-backdrop" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="close" id="closeModal" aria-label="Close">×</button><div id="modalContent"></div></section></div>
-<script src="./app.js"></script>
+<script src="./app.js"></script><script type="module" src="./scene3d.js"></script>
 </body></html>
