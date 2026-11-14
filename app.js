@@ -1,6 +1,9 @@
 (() => {
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,'0');
+// Keep the opening story lightweight on entry-level devices.
+const lowEndDevice=(navigator.deviceMemory>0&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4)||!!navigator.connection?.saveData;
+if(lowEndDevice)document.documentElement.classList.add('low-end-device');
 // Two-part soundtrack: opening theme carries through the gift hunt, then the
 // Christmas celebration track takes over as soon as all six presents are found.
 const openingMusic=new Audio('./settings%20(2).mp3');
