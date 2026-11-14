@@ -201,7 +201,7 @@ function placeCollectibleGift(x,z,color){
 [[-5,9,0x9e4547],[-3.9,9,0x236052],[4,-3,0x315c71],[5.1,-3,0x9e4547],[-5,-23,0x78608c],[-3.9,-23,0x236052]].forEach(p=>placeCollectibleGift(p[0],p[1],p[2]));
 let giftsFound=0;
 function collectGift(g){
- g.visible=false;giftsFound++;
+ g.visible=false;giftsFound++;window.dispatchEvent(new CustomEvent('winter-gift-found',{detail:{count:giftsFound}}));
  const label=document.getElementById('giftCount');if(label)label.textContent=giftsFound+' / 6 PRESENTS FOUND';
  if(giftsFound===6){const q=document.querySelector('#giftQuest span');if(q)q.textContent='✦ DELIVERY COMPLETE';const hint=document.getElementById('sceneHint');if(hint)hint.textContent='ALL SIX PRESENTS DELIVERED — MERRY CHRISTMAS!'}
 }
