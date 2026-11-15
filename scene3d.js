@@ -263,7 +263,71 @@ function updateTreeFinale(now,dt){
  if(e>26){treeFinale.active=false;treeFinale.done=true;document.body.classList.remove('finale-active');document.body.classList.add('festival-unlocked');hiddenSnowflakes.forEach(g=>g.visible=true);window.dispatchEvent(new CustomEvent('winter-festival-unlocked'));cameraMode='follow';chars[0].position.set(-1.4,0,-7.8);chars[1].position.set(1.4,0,-7.8);friends[1].obj.position.copy(friends[1].center);friends[2].obj.position.copy(friends[2].center);chars.forEach(ch=>{ch.rotation.y=0;ch.userData.body.position.y=0;ch.userData.arms.forEach(a=>a.rotation.set(0,0,0));ch.userData.legs.forEach(l=>l.rotation.set(0,0,0))});finaleLadders.forEach(l=>{scene.remove(l);l.traverse(o=>o.geometry?.dispose())});finaleLadders.length=0;const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='VILLAGE FESTIVAL UNLOCKED ✦ FIND 8 MAGICAL SNOWFLAKES • EXPLORE • PLAY'}
 }
 let snowflakesFound=0;
-function collectSnowflake(g){g.visible=false;snowflakesFound++;window.dispatchEvent(new CustomEvent('winter-snowflake-found',{detail:{count:snowflakesFound}}));if(snowflakesFound===8){window.dispatchEvent(new CustomEvent('winter-snowflake-complete'));document.getElementById('sceneHint').textContent='ALL EIGHT SNOWFLAKES FOUND ✦ THE VILLAGE IS YOURS';}}
+const santaVisit={active:false,done:false,start:0,group:null,santa:null,reindeer:[],bells:[],lastCaption:-1};
+function buildSantaVisit(){
+ const sleigh=new THREE.Group(),sleighRed=mat(0x9d303b),trim=mat(0xf0d18b,.35,.35),runner=mat(0x4a302b);
+ // Curved runners, sleigh body and gold-trimmed side panels.
+ for(const side of [-1,1]){
+  const rail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(side*.95,.18,-1.15),new THREE.Vector3(side*.95,.12,.35),new THREE.Vector3(side*.95,.42,1.15),new THREE.Vector3(side*.95,.48,1.55)]),28,.075,7,false),trim);sleigh.add(rail);
+  box(sleigh,side*.83,.62,0,.13,.72,2.2,sleighRed);
+  box(sleigh,side*.84,1.02,0,.15,.12,2.25,trim);
+ }
+ box(sleigh,0,.42,0,1.7,.32,2.15,sleighRed);
+ box(sleigh,0,.88,-.68,1.7,.9,.16,sleighRed);
+ box(sleigh,0,.88,.62,1.7,.9,.16,sleighRed);
+ box(sleigh,0,1.36,-.68,1.75,.12,.2,trim);
+ const santa=character(0x9e3039,0x9e3039,1.05,{name:'SANTA',skin:0xe7b991,hair:0xf0eee5,scarf:0xf2e6cf});
+ // A full white beard and a floppy hat make Santa instantly recognizable.
+ const beard=new THREE.Mesh(new THREE.SphereGeometry(.25,12,9),mat(0xf4eee3));beard.scale.set(1,.8,.58);beard.position.set(0,1.58,.39);santa.userData.body.add(beard);
+ const hatTip=cone(santa.userData.body,0,2.55,-.02,.22,.58,mat(0xa62e38));hatTip.rotation.z=-.18;
+ sphere(santa.userData.body,0,2.82,-.02,.11,cream);
+ cylinder(santa.userData.body,0,2.29,-.02,.31,.31,.1,cream);
+ santa.position.set(0,.95,-.15);sleigh.add(santa);
+ // Reindeer line up in front of the sleigh, each with antlers and a glowing nose.
+ const deerMat=mat(0x805236),antlerMat=mat(0xd6b58a),noseMat=new THREE.MeshStandardMaterial({color:0xff5555,emissive:0xff2525,emissiveIntensity:1.8});
+ for(let i=0;i<3;i++){
+  const deer=new THREE.Group(),z=1.75+i*.92;
+  sphere(deer,0,.78,z,.42,deerMat);sphere(deer,0,1.18,z+.27,.29,deerMat);
+  sphere(deer,0,1.08,z+.52,.075,noseMat);
+  for(const side of [-1,1]){
+   const ear=cone(deer,side*.22,1.38,z+.24,.09,.28,deerMat);ear.rotation.z=side*-.65;
+   const antler=cylinder(deer,side*.2,1.64,z+.2,.035,.045,.5,antlerMat);antler.rotation.z=side*.38;
+   for(let j=0;j<2;j++){const tine=cylinder(deer,side*(.3+j*.09),1.83+j*.07,z+.2,.025,.03,.25,antlerMat);tine.rotation.z=side*-.6}
+   for(const legX of [-.22,.22]){const leg=cylinder(deer,legX,.42,z,.065,.075,.62,deerMat);leg.userData.leg=true;deer.add(leg)}
+  }
+  sleigh.add(deer);santaVisit.reindeer.push(deer);
+ }
+ for(let i=0;i<4;i++){const bell=sphere(sleigh,-.58+i*.38,1.5,-.9,.09,trim);santaVisit.bells.push(bell)}
+ scene.add(sleigh);santaVisit.group=sleigh;santaVisit.santa=santa;
+ sleigh.position.set(-43,8,-20);sleigh.rotation.y=Math.PI/2;
+}
+function beginSantaVisit(){
+ if(santaVisit.active||santaVisit.done)return;
+ releaseControls();buildSantaVisit();santaVisit.active=true;santaVisit.start=performance.now();santaVisit.lastCaption=-1;
+ cameraMode='santaVisit';document.body.classList.add('santa-visit-active');
+ const ui=document.getElementById('treeFinaleOverlay');
+ if(ui){ui.classList.add('show');finaleCaption('A MAGICAL SURPRISE','Look up…','Someone special is on their way to the village!')}
+ window.dispatchEvent(new CustomEvent('winter-santa-started'));
+}
+function updateSantaVisit(now,dt){
+ if(!santaVisit.active)return;
+ const e=(now-santaVisit.start)/1000,g=santaVisit.group;
+ const approach=Math.min(e/8,1),smooth=approach*approach*(3-2*approach);
+ g.position.set(THREE.MathUtils.lerp(-43,0,smooth),THREE.MathUtils.lerp(8,0,Math.min(1,Math.max(0,(e-1)/8))),-20);
+ g.rotation.y=Math.PI/2;
+ santaVisit.reindeer.forEach((d,i)=>{d.rotation.z=Math.sin(e*8+i)*.035;d.position.y=Math.abs(Math.sin(e*9+i))*.07});
+ santaVisit.bells.forEach((b,i)=>{b.position.y=1.5+Math.sin(e*13+i)*.07;b.scale.setScalar(.9+Math.sin(e*13+i)*.08)});
+ const waving=e>9&&e<17;
+ santaVisit.santa.userData.arms[0].rotation.x=waving?-2.25:0;
+ santaVisit.santa.userData.arms[0].rotation.z=waving?-.3:0;
+ if(e>8&&santaVisit.lastCaption!==1){finaleCaption('HE MADE IT!','Merry Christmas, Twain!','Santa has arrived with a special surprise for the village.');santaVisit.lastCaption=1;window.dispatchEvent(new CustomEvent('winter-santa-arrived'))}
+ if(e>14&&santaVisit.lastCaption!==2){finaleCaption('A LITTLE GIFT FOR YOU','You helped bring Christmas back.','Keep this little bit of Christmas magic with you.');santaVisit.lastCaption=2}
+ const target=new THREE.Vector3(0,3.4,-12);
+ const cam=new THREE.Vector3(8,8,3);
+ camera.position.lerp(cam,Math.min(1,dt*1.8));camera.lookAt(target);
+ if(e>21){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
+}
+function collectSnowflake(g){g.visible=false;snowflakesFound++;window.dispatchEvent(new CustomEvent('winter-snowflake-found',{detail:{count:snowflakesFound}}));if(snowflakesFound===8){document.getElementById('sceneHint').textContent='ALL EIGHT SNOWFLAKES FOUND ✦ LOOK TO THE SKY!';window.dispatchEvent(new CustomEvent('winter-snowflake-complete'));beginSantaVisit();}}
 function collectGift(g){
  g.visible=false;giftsFound++;window.dispatchEvent(new CustomEvent('winter-gift-found',{detail:{count:giftsFound}}));
  const label=document.getElementById('giftCount');if(label)label.textContent=giftsFound+' / 6 PRESENTS FOUND';
@@ -463,7 +527,7 @@ if(canControl){
   player.position.set(tryX,0,tryZ);player.rotation.y=Math.atan2(move.x,move.z);
  }
 }
-if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
+if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='santaVisit'){updateSantaVisit(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
 else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
 else{desiredCamera.set(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desiredCamera,1-Math.pow(.001,dt));lookTarget.set(player.position.x,1.5,player.position.z);cameraTarget.lerp(lookTarget,.08);camera.lookAt(cameraTarget)}
