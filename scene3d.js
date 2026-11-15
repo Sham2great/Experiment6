@@ -314,7 +314,7 @@ function updateTreeFinale(now,dt){
  const sackStart=sackAt(twainHand),sackMid=sackAt(twainHand.clone().lerp(antoHand,.5));
  const sackEnd=sackAt(antoHand.clone().lerp(antoOther,.5));
  const offer=smooth(clamp((e-7.1)/2.8,0,1)),receive=smooth(clamp((e-10.1)/2.4,0,1));
- treeFinale.sack.visible=e<19.2;
+ treeFinale.sack.visible=e>=7.1&&e<19.2;
  if(e<10.1)treeFinale.sack.position.lerpVectors(sackStart,sackMid,offer);
  else if(e<12.5)treeFinale.sack.position.lerpVectors(sackMid,sackEnd,receive);
  else treeFinale.sack.position.copy(sackEnd);
@@ -538,7 +538,7 @@ function updateSantaVisit(now,dt){
   const sackMouth=g.localToWorld(new THREE.Vector3(0,2.0,-1.2)).clone();
   const santaArm=santaVisit.santa.userData.arms[1];
   const santaReceiving=active&&e<begin+2.7;
-  santaArm.rotation.set(santaReceiving?-1.2:0,0,santaReceiving?.28:0);
+  if(santaReceiving)santaArm.rotation.set(-1.2,0,.28);
   santaVisit.santa.updateMatrixWorld(true);
   const santaHand=santaArm.localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
   const giftStart=sackMouth.clone().lerp(santaHand,pickup);
