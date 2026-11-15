@@ -215,6 +215,16 @@ for(const [x,z] of fallbackSpots){if(giftSpots.length===6)break;if(giftSpotIsSaf
 giftSpots.forEach((p,i)=>placeCollectibleGift(p.x,p.z,giftColors[i]));
 if(giftSpots.length!==6)console.warn('Gift placement fallback could not place all six:',giftSpots.length);
 let giftsFound=0;
+// A second collectible trail unlocks after the wishing-tree finale.
+const hiddenSnowflakes=[];
+const snowflakeSpots=[[-27,15],[27,15],[-27,-9],[27,-27],[-7,23],[8,24],[-14,-18],[15,-19]];
+snowflakeSpots.forEach(([x,z],i)=>{
+ const g=new THREE.Group();g.position.set(x,.82,z);g.userData.baseY=.82;
+ const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(.34,0),new THREE.MeshStandardMaterial({color:0xc9f5ff,emissive:0x6bc9e8,emissiveIntensity:1.05,metalness:.28,roughness:.2}));
+ crystal.scale.set(.72,1.25,.42);g.add(crystal);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(.52,.025,5,20),gold);ring.rotation.x=Math.PI/2;g.add(ring);
+ scene.add(g);hiddenSnowflakes.push(g);
+});
 function beginTreeFinale(){if(treeFinale.active||treeFinale.done)return;releaseControls();treeFinale.active=true;treeFinale.started=performance.now();document.body.classList.add('finale-active');cameraMode='treeFinale';keys={};drag=false;document.getElementById('treeStudio')?.classList.remove('open');document.getElementById('treeStudio')?.setAttribute('aria-hidden','true');const ui=document.getElementById('treeFinaleOverlay');if(ui){ui.classList.add('show');ui.querySelector('.finale-kicker').textContent='THE LAST PRESENT';ui.querySelector('.finale-title').textContent='One last little wonder…';ui.querySelector('.finale-copy').textContent='The village is waiting for its brightest star.'}}
 const treeFinale={active:false,done:false,started:0,star:null,light:null,glow:null,particles:[],lastCaption:-1};
 const finaleOverlay=document.createElement('div');finaleOverlay.id='treeFinaleOverlay';finaleOverlay.innerHTML='<div class="finale-vignette"></div><div class="finale-caption"><div class="finale-kicker">A CHRISTMAS PROMISE</div><h2 class="finale-title">One last little wonder…</h2><p class="finale-copy">The village is waiting for its brightest star.</p><div class="finale-rule"><i></i> ✦ <i></i></div></div><div class="finale-bottom">TWAIN’S CHRISTMAS · A MOMENT TO REMEMBER</div>';document.body.appendChild(finaleOverlay);
@@ -250,8 +260,10 @@ function updateTreeFinale(now,dt){
  if(e>15&&e<17.2&&treeFinale.lastCaption!==4){finaleCaption('THE WISHING TREE','Look how it shines.','And just like that, Christmas feels a little more magical.');treeFinale.lastCaption=4}
  if(e>=17.2&&treeFinale.lastCaption!==5){finaleCaption('TOGETHER AT LAST','MERRY CHRISTMAS!','The whole village has come together to celebrate.');treeFinale.lastCaption=5}
  if(e>17.2&&e<24.8&&Math.floor(e*6)!==Math.floor((e-dt)*6)&&treeFinale.particles.length<70){for(let i=0;i<4&&treeFinale.particles.length<70;i++){const colors=[0xffd778,0xf4f0df,0xd66b72,0x8ed6c0],p=new THREE.Mesh(new THREE.SphereGeometry(.055,5,5),new THREE.MeshBasicMaterial({color:colors[(i+Math.floor(e*6))%colors.length]}));p.position.set((Math.random()-.5)*9,2.2+Math.random()*3,treeZ+2+(Math.random()-.5)*5);p.userData.velocity=new THREE.Vector3((Math.random()-.5)*1.5,1+Math.random()*1.8,(Math.random()-.5)*.8);scene.add(p);treeFinale.particles.push(p)}}
- if(e>26){treeFinale.active=false;treeFinale.done=true;document.body.classList.remove('finale-active');cameraMode='follow';chars[0].position.set(-1.4,0,-7.8);chars[1].position.set(1.4,0,-7.8);friends[1].obj.position.copy(friends[1].center);friends[2].obj.position.copy(friends[2].center);chars.forEach(ch=>{ch.rotation.y=0;ch.userData.body.position.y=0;ch.userData.arms.forEach(a=>a.rotation.set(0,0,0));ch.userData.legs.forEach(l=>l.rotation.set(0,0,0))});finaleLadders.forEach(l=>{scene.remove(l);l.traverse(o=>o.geometry?.dispose())});finaleLadders.length=0;const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='THE WISHING TREE IS COMPLETE ✦ MERRY CHRISTMAS'}
+ if(e>26){treeFinale.active=false;treeFinale.done=true;document.body.classList.remove('finale-active');document.body.classList.add('festival-unlocked');window.dispatchEvent(new CustomEvent('winter-festival-unlocked'));cameraMode='follow';chars[0].position.set(-1.4,0,-7.8);chars[1].position.set(1.4,0,-7.8);friends[1].obj.position.copy(friends[1].center);friends[2].obj.position.copy(friends[2].center);chars.forEach(ch=>{ch.rotation.y=0;ch.userData.body.position.y=0;ch.userData.arms.forEach(a=>a.rotation.set(0,0,0));ch.userData.legs.forEach(l=>l.rotation.set(0,0,0))});finaleLadders.forEach(l=>{scene.remove(l);l.traverse(o=>o.geometry?.dispose())});finaleLadders.length=0;const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='VILLAGE FESTIVAL UNLOCKED ✦ FIND 8 MAGICAL SNOWFLAKES • EXPLORE • PLAY'}
 }
+let snowflakesFound=0;
+function collectSnowflake(g){g.visible=false;snowflakesFound++;window.dispatchEvent(new CustomEvent('winter-snowflake-found',{detail:{count:snowflakesFound}}));if(snowflakesFound===8){window.dispatchEvent(new CustomEvent('winter-snowflake-complete'));document.getElementById('sceneHint').textContent='ALL EIGHT SNOWFLAKES FOUND ✦ THE VILLAGE IS YOURS';}}
 function collectGift(g){
  g.visible=false;giftsFound++;window.dispatchEvent(new CustomEvent('winter-gift-found',{detail:{count:giftsFound}}));
  const label=document.getElementById('giftCount');if(label)label.textContent=giftsFound+' / 6 PRESENTS FOUND';
@@ -365,7 +377,7 @@ const movementKeys=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','a
 addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
  if(movementKeys.has(key)){keys[key]=true;e.preventDefault();}
- if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest=p[0]}});if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:{place:nearest}}))}
+ if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','ELI','MILA','NOAH','LUNA','THEO','IVY'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',releaseControls);
@@ -401,6 +413,7 @@ document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene
 
 let lastRender=0;const targetFrame=1000/(lowEndDevice?30:60);function animate(now=0){requestAnimationFrame(animate);if(document.visibilityState!=='visible'||now-lastRender<targetFrame)return;const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
 hiddenGifts.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*.8;g.position.y=g.userData.baseY+Math.sin(t*2.1+i)*.1;if(started&&player.position.distanceTo(g.position)<1.45)collectGift(g)});
+hiddenSnowflakes.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*(.75+i*.025);g.position.y=g.userData.baseY+Math.sin(t*2.4+i)*.13;if(treeFinale.done&&player.position.distanceTo(g.position)<1.35)collectSnowflake(g)});
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
 if(!treeFinale.active){
  friends.forEach((f,i)=>{
