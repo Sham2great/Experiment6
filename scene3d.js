@@ -464,7 +464,7 @@ function buildSantaVisit(){
  cylinder(giftSack,0,1.08,0,.34,.38,.24,sackCloth);
  const sackTie=new THREE.Mesh(new THREE.TorusGeometry(.34,.05,7,20),sackTrim);sackTie.rotation.x=Math.PI/2;sackTie.position.y=1.19;giftSack.add(sackTie);
  sphere(giftSack,0,1.22,0,.1,sackTrim);
- const sham=character(0x315c71,0x8f4149,.82,{name:'SHAM',gender:'female',hair:0x342a28,hairStyle:'twists',hairLong:true,scarf:0xe5c98f});
+ const sham=character(0x315c71,0x8f4149,.82,{name:'SHAM',gender:'female',hair:0x342a28,hairStyle:'twists',hairLong:true,hat:false,outfit:'longcoat',trim:0x20394a,scarf:0xe5c98f});
  sham.position.set(0,-.45,0);sham.scale.setScalar(.001);giftSack.add(sham);
  giftSack.position.set(0,.78,-1.2);sleigh.add(giftSack);santaVisit.sack=giftSack;santaVisit.sham=sham;
  // Reindeer line up in front of the sleigh, each with antlers and a glowing nose.
