@@ -174,8 +174,8 @@ function roadStrip(width,y,material){
 roadStrip(4.7,.015,mat(0x879f9b));
 roadStrip(3.9,.035,mat(0xc1d3ce));
 
-function lamp(x,z){cylinder(scene,x,1.7,z,.09,.12,3.4,darkWood);box(scene,x,3.5,z,.58,.6,.58,darkWood);if(Math.abs(x)<10){const l=new THREE.PointLight(0xffc87e,4,6);l.position.set(x,3.45,z);scene.add(l)}sphere(scene,x,3.5,z,.19,gold)}
-for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21],[-17,1],[17,0],[-17,-20],[17,-21]])lamp(x,z);
+function lamp(x,z){cylinder(scene,x,1.85,z,.085,.12,3.7,darkWood);cylinder(scene,x,3.55,z,.16,.2,.22,gold);const glass=new THREE.Mesh(new THREE.BoxGeometry(.48,.58,.48),new THREE.MeshStandardMaterial({color:0xffd99a,emissive:0xffb85d,emissiveIntensity:1.7,transparent:true,opacity:.82}));glass.position.set(x,3.88,z);scene.add(glass);const cap=new THREE.Mesh(new THREE.ConeGeometry(.39,.3,4),darkWood);cap.position.set(x,4.31,z);cap.rotation.y=Math.PI/4;scene.add(cap);const l=new THREE.PointLight(0xffc87e,5.5,10);l.position.set(x,3.85,z);scene.add(l);sphere(scene,x,3.54,z,.12,gold)}
+for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21],[-17,1],[17,0],[-17,-20],[17,-21],[-25,-8],[25,4],[-3,18],[3,-28],[-13,-28],[14,18]])lamp(x,z);
 
 /* A fuller village square: market huts, festive arches, bunting and layered lights */
 function marketStall(x,z,accent){
@@ -198,6 +198,9 @@ function festiveArch(z){
  return g;
 }
 festiveArch(10);festiveArch(-1);
+function villageClockTower(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,3.4,0,3.3,6.8,3.1,mat(0x66504a));for(const side of [-1,1]){box(g,side*1.7,3.5,0,.16,7,.18,gold);box(g,0,6.8,side*1.58,3.35,.16,.18,cream)}const top=new THREE.Mesh(new THREE.ConeGeometry(2.45,2.4,4),red);top.position.y=8;top.rotation.y=Math.PI/4;g.add(top);const face=new THREE.Mesh(new THREE.CircleGeometry(.82,32),cream);face.position.set(0,5.25,1.62);g.add(face);const ring=new THREE.Mesh(new THREE.TorusGeometry(.84,.08,8,32),gold);ring.position.set(0,5.25,1.66);g.add(ring);const h=box(g,0,5.48,1.78,.055,.43,.035,darkWood);h.rotation.z=-.55;box(g,.16,5.25,1.79,.34,.055,.035,darkWood);return g}
+function villageLookoutTower(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const side of [-1,1])for(const depth of [-1,1])cylinder(g,side*.95,3.2,depth*.95,.12,.16,6.4,darkWood);for(let y=1.2;y<6;y+=1.35){box(g,0,y,0,2.15,.13,2.15,wood);for(const side of [-1,1])box(g,side*.95,y+.42,0,.12,.8,1.9,gold)}box(g,0,6.3,0,2.7,.28,2.7,darkWood);const roofTop=new THREE.Mesh(new THREE.ConeGeometry(2.15,1.7,4),roof);roofTop.position.y=7.35;roofTop.rotation.y=Math.PI/4;g.add(roofTop);return g}
+villageClockTower(20,15);villageLookoutTower(-27,-5);
 function stringLights(a,b,c,d,y){
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(a,y,c),new THREE.Vector3((a+b)/2,y-2,(c+d)/2),new THREE.Vector3(b,y,d)]);
  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,45,.045,6,false),gold));
@@ -605,17 +608,18 @@ function character(coatColor,hatColor,scale=1,style={}){
  const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.397,20,14,0,Math.PI*2,0,Math.PI*.47),hair);hairCap.position.set(0,2.015,-.045);body.add(hairCap);
  const addLock=(x,y,z,r,len,rz=0)=>{const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,len,5,8),hair);m.position.set(x,y,z);m.rotation.z=rz;body.add(m);return m};
  if(hairStyle==='twists'){
-  for(let i=0;i<13;i++){const a=i/13*Math.PI*2,x=Math.cos(a)*.29,z=Math.sin(a)*.29;addLock(x,1.53,z,.047,.48,Math.sin(a)*.12);sphere(body,x,1.77,z,.055,hair)}
-  for(let i=0;i<5;i++)addLock(-.23+i*.115,1.91,.31,.035,.18,(i-2)*.16);
+  for(let i=0;i<18;i++){const a=i/18*Math.PI*2,x=Math.cos(a)*.31,z=Math.sin(a)*.31;addLock(x,1.43,z,.052,.72,Math.sin(a)*.16);sphere(body,x,1.02,z,.055,hair)}
+  for(let i=0;i<7;i++)addLock(-.27+i*.09,1.91,.32,.042,.25,(i-3)*.19);
+  for(let i=0;i<4;i++)addLock(-.25+i*.17,1.35,-.31,.052,.78,(i-1.5)*.09);
  }else if(hairStyle==='bob'){
   const back=new THREE.Mesh(new THREE.SphereGeometry(.37,16,12),hair);back.scale.set(1.02,1.12,.92);back.position.set(0,1.78,-.12);body.add(back);
   for(const side of [-1,1])addLock(side*.32,1.62,.03,.105,.4,side*-.12);
   const fringe=new THREE.Mesh(new THREE.SphereGeometry(.22,14,9),hair);fringe.scale.set(1.15,.2,.35);fringe.position.set(0,1.99,.33);body.add(fringe);
  }else if(hairStyle==='curls'){
-  for(let i=0;i<19;i++){const a=i*2.399,r=i<12?.34:.22,y=i<12?2.12:2.29;const curl=sphere(body,Math.cos(a)*r,y+(i%3)*.045,Math.sin(a)*r-.025,.105,hair);curl.scale.set(1,.92,1)}
+  for(let i=0;i<34;i++){const a=i*2.399,r=i<18?.37:.25,y=i<18?2.1:2.31,sz=.085+(i%4)*.012;const curl=sphere(body,Math.cos(a)*r,y+(i%3)*.045,Math.sin(a)*r-.025,sz,hair);curl.scale.set(1,.96,1)}
   for(const side of [-1,1])addLock(side*.34,1.66,.02,.085,.18,side*-.08);
  }else if(hairStyle==='braids'){
-  for(const side of [-1,1]){addLock(side*.3,1.82,-.02,.105,.32,side*-.1);for(let j=0;j<6;j++){const bead=sphere(body,side*(.34+(j%2)*.025),1.55-j*.115,.08,.067,hair);bead.scale.set(.9,1.15,.9)}sphere(body,side*.34,.91,.08,.065,mat(style.hairTie||0xe8c98c))}
+  for(const side of [-1,1]){addLock(side*.3,1.83,-.02,.13,.28,side*-.1);for(let j=0;j<9;j++){const bead=sphere(body,side*(.33+(j%2)*.035),1.57-j*.105,.1,.078,hair);bead.scale.set(.92,1.18,.9)}sphere(body,side*.34,.69,.1,.075,mat(style.hairTie||0xe8c98c))}
   const fringe=new THREE.Mesh(new THREE.SphereGeometry(.21,14,9),hair);fringe.scale.set(1.1,.18,.32);fringe.position.set(0,1.99,.33);body.add(fringe);
  }else if(hairStyle==='long'){
   const back=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.78,6,9),hair);back.position.set(0,1.4,-.28);body.add(back);
@@ -628,8 +632,7 @@ function character(coatColor,hatColor,scale=1,style={}){
  }
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
- const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,10,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
- cylinder(body,0,1.96,0,.405,.405,.11,fur);sphere(body,0,2.38,-.015,.105,fur);
+ if(style.hat!==false){const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,10,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);cylinder(body,0,1.96,0,.405,.405,.11,fur);sphere(body,0,2.38,-.015,.105,fur);}
  // Rounded scarf wrap and soft hanging end instead of a square neck block.
  const scarfRing=new THREE.Mesh(new THREE.TorusGeometry(.285,.085,8,20),scarf);
  scarfRing.rotation.x=Math.PI/2;scarfRing.position.set(0,1.55,0);body.add(scarfRing);
@@ -646,12 +649,12 @@ function character(coatColor,hatColor,scale=1,style={}){
  if(style.name)root.add(nameTag(style.name));
  root.userData.body=body;root.userData.legs=legs;root.userData.arms=arms;root.scale.setScalar(scale);return root;
 }
-const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'female',hair:0x342a28,hairLong:true,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
+const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'twists',hat:false,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
 const friends=[
- {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hairLong:true,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
- {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
- {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hairLong:true,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
- {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
+ {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
+ {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
+ {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hat:false,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
+ {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',hat:false,scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
 ];
 friends.forEach(f=>scene.add(f.obj));
 // Anto's black cat with animated legs and a tiny Santa hat.
