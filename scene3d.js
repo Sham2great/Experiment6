@@ -249,10 +249,10 @@ function updateTreeFinale(now,dt){
  const e=(now-treeFinale.started)/1000,treeZ=-13,baseZ=-10.45,smooth=v=>v*v*(3-2*v),clamp=THREE.MathUtils.clamp;
  const chars=[player,friends[0].obj],xs=[-1.05,1.05],starts=[-3.5,3.5];
  const villagers=[player,...friends.map(f=>f.obj)],partySpots=[[-5.8,-9.1],[-3.9,-7.8],[-1.95,-7.1],[0,-6.8],[1.95,-7.1]];
- if(!finaleLadders.length)finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());
+ if(!finaleLadders.length){finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());finaleLadders.forEach(ladder=>{ladder.visible=false;});}
  if(!treeFinale.sack)treeFinale.sack=makeGiftSack();
  const walk=smooth(clamp(e/4.1,0,1));
- chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ+.25,walk));ch.rotation.y=Math.PI;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=e<4.1?-.9:0)});
+ chars.forEach((ch,i)=>{ch.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),0,THREE.MathUtils.lerp(-8.4,baseZ+.25,walk));ch.rotation.y=Math.PI;const gait=e*7.5+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e<4.1?Math.sin(gait+j*Math.PI)*.55:0);ch.userData.arms.forEach(arm=>arm.rotation.x=0)});
  const handoff=clamp((e-3.4)/1.9,0,1),handoffEase=smooth(handoff);
  const sackStart=new THREE.Vector3(player.position.x+.65,1.25,player.position.z-.1);
  const sackEnd=new THREE.Vector3(friends[0].obj.position.x-.58,1.2,friends[0].obj.position.z-.1);
@@ -266,7 +266,7 @@ function updateTreeFinale(now,dt){
  friends[0].obj.userData.arms.forEach((arm,j)=>{arm.rotation.x=joy?-2.2:0;arm.rotation.z=joy?(j===0?-.3:.3):0});
  if(e>=7.65)friends[0].obj.position.y=0;
  const plant=smooth(clamp((e-7.8)/1.8,0,1));
- finaleLadders.forEach((ladder,i)=>{ladder.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),1.75*(1-plant),THREE.MathUtils.lerp(-8.65,baseZ,walk));ladder.rotation.set(-.22*plant,0,(Math.PI/2)*(1-plant));if(e>=7.8&&e<9.6)chars[i].userData.arms.forEach(arm=>arm.rotation.x=-1.1+plant*.7)});
+ finaleLadders.forEach((ladder,i)=>{ladder.visible=e>=7.8;ladder.position.set(THREE.MathUtils.lerp(starts[i],xs[i],walk),1.75*(1-plant),THREE.MathUtils.lerp(-8.65,baseZ,walk));ladder.rotation.set(-.22*plant,0,(Math.PI/2)*(1-plant));if(e>=7.8&&e<9.6)chars[i].userData.arms.forEach(arm=>arm.rotation.x=-1.1+plant*.7)});
  const climb=smooth(clamp((e-9.8)/7.2,0,1));
  chars.forEach((ch,i)=>{if(e<9.8)ch.position.set(xs[i],0,baseZ+.25);else if(e<17.1)ch.position.set(xs[i],.12+climb*4.75,baseZ-.12-climb*.75);else{const down=smooth(clamp((e-17.1)/4.1,0,1));ch.position.set(xs[i],4.87*(1-down),THREE.MathUtils.lerp(baseZ-.87,baseZ+.35,down))}const stepping=e>9.8&&e<17.1,gait=e*7.2+i*Math.PI;ch.userData.legs.forEach((leg,j)=>leg.rotation.x=stepping?Math.sin(gait+j*Math.PI)*.34:0);ch.userData.arms.forEach(arm=>arm.rotation.x=stepping?-.95:(e>14.6&&e<17.3?-1.75:0));ch.userData.body.position.y=stepping?Math.abs(Math.sin(gait*2))*.025:0});
  if(e>15.8&&!treeFinale.star){treeFinale.star=makeFinaleStar();treeFinale.star.position.set(-1.05,5.45,baseZ-.9)}
