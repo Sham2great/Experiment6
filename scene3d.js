@@ -698,8 +698,8 @@ function makeAntoCat(){
 const antoCat=makeAntoCat();scene.add(antoCat);
 const antoKittens=[makeAntoCat(),makeAntoCat(),makeAntoCat()];
 antoKittens.forEach((kitten,i)=>{kitten.scale.setScalar(.48);kitten.visible=false;scene.add(kitten);kitten.position.set(-7.8+i*.65,.0,-12.6)});
-const wildKittens=[makeAntoCat(),makeAntoCat()];wildKittens.forEach((k,i)=>{k.scale.setScalar(.43);k.visible=false;k.position.set(-19+i*.8,.02,10.5);scene.add(k)});
-const kittenNest=new THREE.Group();kittenNest.position.set(-19,.02,10.2);scene.add(kittenNest);const nestRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,8,20),wood);nestRing.rotation.x=Math.PI/2;nestRing.position.y=.22;kittenNest.add(nestRing);for(let i=0;i<4;i++){const blanket=sphere(kittenNest,Math.cos(i*1.57)*.28,.18,Math.sin(i*1.57)*.28,.24,[red,cream,gold,pine2][i]);blanket.scale.y=.18}
+const wildKittens=[makeAntoCat(),makeAntoCat()];wildKittens.forEach((k,i)=>{k.scale.setScalar(.43);k.visible=false;k.position.set(-5+i*.8,.02,-22);scene.add(k)});
+const kittenNest=new THREE.Group();kittenNest.position.set(-5,.02,-22);scene.add(kittenNest);const nestRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,8,20),wood);nestRing.rotation.x=Math.PI/2;nestRing.position.y=.22;kittenNest.add(nestRing);for(let i=0;i<4;i++){const blanket=sphere(kittenNest,Math.cos(i*1.57)*.28,.18,Math.sin(i*1.57)*.28,.24,[red,cream,gold,pine2][i]);blanket.scale.y=.18}
 function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+pad&&Math.abs(z-o.z)<o.hz+pad)}
 
 const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?48:mobileDevice?90:160,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
@@ -721,7 +721,7 @@ const movementKeys=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','a
 addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
  if(movementKeys.has(key)){keys[key]=true;e.preventDefault();}
- if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13],['rink',28,-8],['clocktower',20,15],['lookout',-27,-5],['kittens',-19,10]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','VIV','TASS','JORDAN'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
+ if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13],['rink',28,-8],['clocktower',20,15],['lookout',-27,-5],['kittens',-5,-22]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','VIV','TASS','JORDAN'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',releaseControls);
@@ -763,8 +763,8 @@ if(!treeFinale.active&&cameraMode!=='santaVisit'){
  friends.forEach((f,i)=>{
   const a=t*f.speed+f.phase;let x=f.center.x+Math.cos(a)*f.radius,z=f.center.z+Math.sin(a)*f.radius;
   if(i===1){const skate=t*.34+f.phase;x=28+Math.cos(skate)*4.35;z=-8+Math.sin(skate)*2.35;f.obj.userData.arms[0].rotation.z=-.72;f.obj.userData.arms[1].rotation.z=.72;}
-  if(i===0){const cycle=(t+9)%54;if(cycle>17&&cycle<39){const q=cycle<25?(cycle-17)/8:cycle<31?1:1-(cycle-31)/8,sm=q*q*(3-2*q);x=THREE.MathUtils.lerp(x,-19,sm);z=THREE.MathUtils.lerp(z,10.2,sm);f.obj.userData.body.position.x=cycle>24&&cycle<34?.08:0;if(cycle>23&&cycle<36)wildKittens.forEach((k,j)=>{k.visible=true;k.position.set(-19+(j-.5)*.8,.02+Math.abs(Math.sin(t*5+j))*.07,10.8);k.rotation.y=Math.sin(t*1.8+j)*.25;k.userData.legs.forEach((leg,n)=>leg.rotation.x=Math.sin(t*7+j+n*Math.PI)*.2)})}}
-  if(!hitsHouse(x,z,.62)){f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=i===1?Math.atan2(-Math.sin(t*.34+f.phase),Math.cos(t*.34+f.phase)):(i===0&&((t+9)%54)>17&&((t+9)%54)<39?Math.atan2(-19-x,10.2-z):-a)}
+  if(i===0){const cycle=(t+9)%54;if(cycle>17&&cycle<39){const q=cycle<25?(cycle-17)/8:cycle<31?1:1-(cycle-31)/8,sm=q*q*(3-2*q);x=THREE.MathUtils.lerp(x,-5,sm);z=THREE.MathUtils.lerp(z,-22,sm);f.obj.userData.body.position.x=cycle>24&&cycle<34?.08:0;if(cycle>23&&cycle<36)wildKittens.forEach((k,j)=>{k.visible=true;k.position.set(-5+(j-.5)*.8,.02+Math.abs(Math.sin(t*5+j))*.07,-21.2);k.rotation.y=Math.sin(t*1.8+j)*.25;k.userData.legs.forEach((leg,n)=>leg.rotation.x=Math.sin(t*7+j+n*Math.PI)*.2)})}}
+  if(!hitsHouse(x,z,.62)){f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=i===1?Math.atan2(-Math.sin(t*.34+f.phase),Math.cos(t*.34+f.phase)):(i===0&&((t+9)%54)>17&&((t+9)%54)<39?Math.atan2(-5-x,-22-z):-a)}
   const gait=t*f.speed*f.radius*5+i;
   f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=i===1?Math.sin(t*4+j*Math.PI)*.18:Math.sin(gait+j*Math.PI)*.58);
   f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);
