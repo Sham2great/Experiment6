@@ -711,7 +711,7 @@ const movementKeys=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','a
 addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
  if(movementKeys.has(key)){keys[key]=true;e.preventDefault();}
- if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','VIV','TASS','JORDAN'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
+ if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13],['rink',28,-8],['clocktower',20,15],['lookout',-27,-5],['kittens',-19,10]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','VIV','TASS','JORDAN'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',releaseControls);
