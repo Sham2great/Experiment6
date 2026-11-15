@@ -435,8 +435,8 @@ function buildSantaVisit(){
   sleigh.add(deer);santaVisit.reindeer.push(deer);
  }
  for(let i=0;i<4;i++){const bell=sphere(sleigh,-.58+i*.38,1.5,-.9,.09,trim);santaVisit.bells.push(bell)}
- // Two bright, individually wrapped presents for Twain and Anto.
- const giftColors=[0x2d8c62,0xb83c49],giftRibbons=[0xf3d58b,0xe8e2d4];
+ // Five individually wrapped presents, one for every member of the village group.
+ const giftColors=[0x2d8c62,0xb83c49,0x416fa8,0x8a579c,0xd18a36],giftRibbons=[0xf3d58b,0xe8e2d4,0xf1d27b,0xf4e5d2,0x6b392d];
  santaVisit.gifts.length=0;
  giftColors.forEach((color,i)=>{const gift=new THREE.Group(),paper=mat(color),ribbon=mat(giftRibbons[i]);box(gift,0,0,0,.58,.48,.5,paper);box(gift,0,.25,0,.12,.035,.53,ribbon);box(gift,0,.25,0,.62,.035,.11,ribbon);const bow=sphere(gift,0,.31,0,.12,ribbon);bow.scale.set(1,.5,1);scene.add(gift);gift.visible=false;santaVisit.gifts.push(gift)});
  scene.add(sleigh);santaVisit.group=sleigh;santaVisit.santa=santa;
@@ -490,24 +490,24 @@ function updateSantaVisit(now,dt){
   if(e>12)kitten.visible=true;
   if(kitten.visible){kitten.scale.setScalar(.48);const sx=g.position.x+(i-1)*.48,sz=g.position.z-1.5,tx=santaVisit.crowdTargets[1].x+(i-1)*.62,tz=santaVisit.crowdTargets[1].z+.9;kitten.position.set(THREE.MathUtils.lerp(sx,tx,kittenReveal),.05+Math.abs(Math.sin(e*7+i*1.8))*.13+Math.sin(kittenReveal*Math.PI)*.3,THREE.MathUtils.lerp(sz,tz,kittenReveal));kitten.rotation.y=Math.PI}
  });
- // Santa lifts a present and visibly hands it to Twain, then repeats for Anto.
- const recipients=[player,friends[0].obj],giftWindows=[[16,20.2],[22,26.2]];
+ // Santa personally hands a present to each villager: Twain, Anto, Viv, Tass and Jordan.
+ const recipients=[player,...friends.map(f=>f.obj)],giftWindows=[[16,20.2],[22,26.2],[28,32.2],[34,38.2],[40,44.2]];
  santaVisit.gifts.forEach((gift,i)=>{
   const [begin,finish]=giftWindows[i],q=smooth(clamp((e-begin)/2.4,0,1)),recipient=recipients[i],target=santaVisit.crowdTargets[i];
-  gift.visible=e>=begin&&e<=finish+1.8;
+  gift.visible=e>=begin;
   const from=new THREE.Vector3(g.position.x-.72,2.35,g.position.z+1.25);
-  const to=new THREE.Vector3(target.x+(i===0?.55:-.55),1.45,target.z+.22);
+  const to=new THREE.Vector3(target.x+(i%2===0?.55:-.55),1.45,target.z+.22);
   gift.position.lerpVectors(from,to,q);gift.rotation.set(.08,Math.sin(e*2+i)*.08,.12*(1-q));
   recipient.userData.arms.forEach((arm,j)=>{const receiving=e>begin+1.5&&e<finish+1.8;arm.rotation.x=receiving?-.9:0;arm.rotation.z=receiving?(j===0?-.48:.48):0});
   santaVisit.santa.userData.arms[1].rotation.x=e>begin&&e<finish?-1.65:0;
   santaVisit.santa.userData.arms[1].rotation.z=e>begin&&e<finish?.35:0;
-  if(e>=begin&&e<begin+.3&&santaVisit.lastCaption<3+i){finaleCaption(i===0?'A GIFT FOR TWAIN':'A GIFT FOR ANTO',i===0?'For being good this year!':'You’ve been so good, Anto!','Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
+  if(e>=begin&&e<begin+.3&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'For being good this year!':'For being such a wonderful friend!','Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
   if(e>finish&&e<finish+.3){gift.position.copy(to);recipient.userData.arms.forEach(arm=>arm.rotation.set(0,0,0))}
  });
  // Final group portrait: all five villagers, Santa, sleigh and kittens in one frame.
- if(e>=28){camPos=new THREE.Vector3(9.5,10.5,-16.5);look=new THREE.Vector3(0,1.6,-14.4);if(santaVisit.lastCaption!==5){finaleCaption('A VERY MERRY CHRISTMAS','Presents for Twain and Anto!','Santa made sure everyone who helped save Christmas got a little magic.');santaVisit.lastCaption=5}}
+ if(e>=45){camPos=new THREE.Vector3(9.5,10.5,-16.5);look=new THREE.Vector3(0,1.6,-14.4);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
  camera.position.lerp(camPos,Math.min(1,dt*2.2));camera.lookAt(look);
- if(e>34){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
+ if(e>49){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
 }
 function collectSnowflake(g){g.visible=false;snowflakesFound++;window.dispatchEvent(new CustomEvent('winter-snowflake-found',{detail:{count:snowflakesFound}}));if(snowflakesFound===8){document.getElementById('sceneHint').textContent='ALL EIGHT SNOWFLAKES FOUND ✦ LOOK TO THE SKY!';window.dispatchEvent(new CustomEvent('winter-snowflake-complete'));beginSantaVisit();}}
 function collectGift(g){
