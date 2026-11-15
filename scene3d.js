@@ -348,24 +348,45 @@ function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.h
 
 const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?48:mobileDevice?90:160,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
 
-let keys={},yaw=0,pitch=.18,drag=false,lastX=0,lastY=0,started=false,cinema=true,clock=new THREE.Clock(),cameraMode='follow',cameraTarget=new THREE.Vector3(0,1,0),introStart=performance.now();
-function releaseControls(){keys={};drag=false;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
+let keys={},yaw=0,pitch=.18,drag=false,dragPointerId=null,lastX=0,lastY=0,started=false,cinema=true,clock=new THREE.Clock(),cameraMode='follow',cameraTarget=new THREE.Vector3(0,1,0),introStart=performance.now();
+function releaseControls(){keys={};drag=false;dragPointerId=null;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
 window.addEventListener('blur',releaseControls);
 window.addEventListener('pagehide',releaseControls);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseControls();});
-// A missed pointer-up must never leave a movement key held.
-function releasePointerControls(){keys.w=keys.a=keys.s=keys.d=keys.shift=false;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
+// Clear only the pointer interaction that ended; camera drags and movement buttons
+// must not accidentally leave one another in a held state.
+function releasePointerControls(e){if(e?.pointerId===dragPointerId){drag=false;dragPointerId=null;}keys.w=keys.a=keys.s=keys.d=keys.shift=false;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
 document.addEventListener('pointerup',releasePointerControls);
 document.addEventListener('pointercancel',releasePointerControls);
 document.addEventListener('contextmenu',releaseControls);
 const forward=new THREE.Vector3(),right=new THREE.Vector3(),move=new THREE.Vector3(),sideMove=new THREE.Vector3(),desiredCamera=new THREE.Vector3(),lookTarget=new THREE.Vector3(),cinemaLook=new THREE.Vector3();
 const cinematicShots=[{p:new THREE.Vector3(0,19,39),l:new THREE.Vector3(0,2,-5)},{p:new THREE.Vector3(20,12,3),l:new THREE.Vector3(0,3,-13)},{p:new THREE.Vector3(-20,10,-1),l:new THREE.Vector3(-7,2,-5)},{p:new THREE.Vector3(0,23,-35),l:new THREE.Vector3(0,2,-7)},{p:new THREE.Vector3(0,13,24),l:new THREE.Vector3(0,2,-13)}];
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key.toLowerCase()==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest=p[0]}});if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:{place:nearest}}))}});
+const movementKeys=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
+addEventListener('keydown',e=>{
+ const key=e.key.toLowerCase();
+ if(movementKeys.has(key)){keys[key]=true;e.preventDefault();}
+ if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest=p[0]}});if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:{place:nearest}}))}
+});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 addEventListener('blur',releaseControls);
-renderer.domElement.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
-renderer.domElement.addEventListener('pointermove',e=>{if(!drag||!started)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.15,.8);lastX=e.clientX;lastY=e.clientY});
-renderer.domElement.addEventListener('pointerup',()=>drag=false);renderer.domElement.addEventListener('pointercancel',()=>drag=false);renderer.domElement.addEventListener('lostpointercapture',()=>drag=false);
+const canvas=renderer.domElement;
+canvas.style.touchAction='none';
+canvas.style.webkitUserSelect='none';
+canvas.addEventListener('pointerdown',e=>{
+ if(e.button!==0)return;
+ drag=true;dragPointerId=e.pointerId;lastX=e.clientX;lastY=e.clientY;
+ try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!drag||e.pointerId!==dragPointerId||!started||cameraMode!=='follow')return;
+ const dx=e.clientX-lastX,dy=e.clientY-lastY;
+ yaw-=dx*.007;
+ pitch=THREE.MathUtils.clamp(pitch+dy*.004,-.22,.9);
+ lastX=e.clientX;lastY=e.clientY;
+});
+canvas.addEventListener('pointerup',e=>{if(e.pointerId===dragPointerId){drag=false;dragPointerId=null}});
+canvas.addEventListener('pointercancel',e=>{if(e.pointerId===dragPointerId){drag=false;dragPointerId=null}});
+canvas.addEventListener('lostpointercapture',e=>{if(e.pointerId===dragPointerId){drag=false;dragPointerId=null}});
 document.querySelectorAll('[data-move]').forEach(btn=>{const k={forward:'w',back:'s',left:'a',right:'d'}[btn.dataset.move];btn.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;try{btn.setPointerCapture(e.pointerId)}catch(_){}});['pointerup','pointerleave','pointercancel','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,()=>{keys[k]=false}))});
 const sprintButton=document.querySelector('[data-sprint]');
 if(sprintButton){sprintButton.addEventListener('pointerdown',e=>{e.preventDefault();keys.shift=true;sprintButton.classList.add('active');try{sprintButton.setPointerCapture(e.pointerId)}catch(_){}});['pointerup','pointerleave','pointercancel','lostpointercapture'].forEach(ev=>sprintButton.addEventListener(ev,()=>{keys.shift=false;sprintButton.classList.remove('active')}));}
