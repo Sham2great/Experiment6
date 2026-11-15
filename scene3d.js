@@ -534,6 +534,7 @@ if(!treeFinale.active){
  const walking=stepLengthSq>.00000225,gait=t*9.5;
  antoCat.userData.legs.forEach((leg,j)=>leg.rotation.x=walking?Math.sin(gait+(j%2)*Math.PI+(j>1?Math.PI:0))*.52:0);
  antoCat.userData.tail.rotation.z=Math.sin(t*3.5)*.3;
+ antoKittens.forEach((kitten,i)=>{const side=(i-1)*.62;kitten.position.x=antoCat.position.x+side;kitten.position.z=antoCat.position.z+.58+Math.abs(side)*.16;kitten.position.y=.015+Math.abs(Math.sin(t*5+i*1.8))*.08;kitten.rotation.y=antoCat.rotation.y+Math.sin(t*1.7+i)*.16;kitten.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(t*7+i+j*Math.PI)*.18);kitten.userData.tail.rotation.z=Math.sin(t*3+i)*.22});
  }
 const canControl=started&&cameraMode==='follow';
 const sprinting=canControl&&!!keys.shift,moving=canControl&&(keys.w||keys.s||keys.a||keys.d);
