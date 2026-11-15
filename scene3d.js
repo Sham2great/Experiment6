@@ -314,8 +314,8 @@ function updateTreeFinale(now,dt){
  if(!treeFinale.active)return;
  const e=(now-treeFinale.started)/1000,treeZ=-13,baseZ=-10.45,smooth=v=>v*v*(3-2*v),clamp=THREE.MathUtils.clamp;
  const chars=[player,friends[0].obj],villagers=[player,...friends.map(f=>f.obj)];
- const handoffSpots=[new THREE.Vector3(-5.35,0,-8.15),new THREE.Vector3(-2.65,0,-8.15)];
- const ladderSpots=[new THREE.Vector3(-1.35,0,baseZ+.25),new THREE.Vector3(1.35,0,baseZ+.25)];
+ const handoffSpots=[new THREE.Vector3(-4.35,0,-5.35),new THREE.Vector3(-1.55,0,-5.35)];
+ const ladderSpots=[new THREE.Vector3(-1.45,0,baseZ+.25),new THREE.Vector3(1.45,0,baseZ+.25)];
  const partySpots=[[-5.8,-9.1],[-3.9,-7.8],[-1.95,-7.1],[0,-6.8],[1.95,-7.1]];
  if(!treeFinale.stageStarts)treeFinale.stageStarts=chars.map(ch=>ch.position.clone());
  if(!finaleLadders.length){finaleLadders.push(makeFinaleLadder(),makeFinaleLadder());finaleLadders.forEach(ladder=>{ladder.visible=false;});}
@@ -353,13 +353,16 @@ function updateTreeFinale(now,dt){
  else treeFinale.sack.position.copy(sackEnd);
  treeFinale.sack.rotation.set(0,0,0);
  // Anto celebrates with a happy bounce while keeping both hands on the gift sack.
- const joy=e>15.2&&e<19.2,joyPulse=joy?Math.max(0,Math.sin((e-15.2)*Math.PI*1.65)):0;
- anto.position.y=joyPulse*.42;
- anto.userData.legs.forEach((leg,j)=>leg.rotation.x=joy?Math.sin(e*10+j*Math.PI)*.48:0);
- if(e>=19.2){treeFinale.sack.visible=false;anto.position.y=0;}
+ const joy=e>15.2&&e<20.4,joyBeat=(e-15.2)*Math.PI*2.35,joyPulse=joy?Math.max(0,Math.sin(joyBeat)):0;
+ anto.position.y=joyPulse*.62;
+ anto.rotation.y=-Math.PI/2+Math.sin(joyBeat*.5)*.28;
+ anto.userData.legs.forEach((leg,j)=>{leg.rotation.x=joy?Math.sin(joyBeat+j*Math.PI)*.72:0;leg.rotation.z=joy?(j===0?-.16:.16)*Math.sin(joyBeat):0});
+ anto.userData.arms.forEach((arm,j)=>{if(joy){arm.rotation.x=-2.25+Math.sin(joyBeat+j*Math.PI)*.35;arm.rotation.z=(j===0?-.72:.72)+Math.sin(joyBeat+j*Math.PI)*.22}});
+ anto.userData.body.rotation.z=joy?Math.sin(joyBeat*.5)*.12:0;
+ if(e>=20.4){treeFinale.sack.visible=false;anto.position.y=0;anto.userData.body.rotation.z=0;anto.userData.arms.forEach(arm=>arm.rotation.set(0,0,0));anto.userData.legs.forEach(leg=>leg.rotation.set(0,0,0));}
 
  // Let the happiness land before the pair turn back to the tree and prepare the ladders.
- const moveToTree=smooth(clamp((e-21.5)/4.2,0,1));
+ const moveToTree=smooth(clamp((e-21.0)/4.8,0,1));
  chars.forEach((ch,i)=>{
   ch.position.lerpVectors(handoffSpots[i],ladderSpots[i],moveToTree);
   ch.position.y=0;
@@ -367,7 +370,7 @@ function updateTreeFinale(now,dt){
   ch.rotation.y=THREE.MathUtils.lerp(i===0?Math.PI/2:-Math.PI/2,faceTree,moveToTree);
   const gait=e*6.5+i*Math.PI;
   ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e>21.5&&e<25.7?Math.sin(gait+j*Math.PI)*(1-moveToTree)*.3:0);
-  if(e>=19.2&&e<25.7)ch.userData.arms.forEach(arm=>arm.rotation.set(0,0,0));
+  if(e>=20.4&&e<25.8)ch.userData.arms.forEach(arm=>arm.rotation.set(0,0,0));
  });
 
  const plant=smooth(clamp((e-26.2)/2.8,0,1));
