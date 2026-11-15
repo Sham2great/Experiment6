@@ -633,6 +633,14 @@ function character(coatColor,hatColor,scale=1,style={}){
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
  if(style.hat!==false){const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,10,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);cylinder(body,0,1.96,0,.405,.405,.11,fur);sphere(body,0,2.38,-.015,.105,fur);}
+ // Tailored outfit details: no two winter coats have the same silhouette.
+ const outfit=style.outfit||'classic';
+ if(outfit==='longcoat'){box(body,0,1.06,.44,.62,.88,.13,mat(style.trim||0x283b49));box(body,-.2,.91,.52,.035,.52,.025,zipper);box(body,.2,.91,.52,.035,.52,.025,zipper)}
+ else if(outfit==='hoodie'){const hood=new THREE.Mesh(new THREE.TorusGeometry(.29,.12,8,18),coat);hood.position.set(0,1.83,-.19);body.add(hood);for(const x of [-.12,.12])cylinder(body,x,1.17,.49,.018,.018,.38,zipper)}
+ else if(outfit==='overalls'){box(body,0,.99,.51,.52,.5,.12,mat(style.trim||0x385a71));for(const x of [-.22,.22]){box(body,x,1.38,.48,.085,.48,.11,mat(style.trim||0x385a71));sphere(body,x,1.54,.55,.045,gold)}}
+ else if(outfit==='knit'){for(let j=0;j<3;j++)box(body,0,.82+j*.2,.495,.7,.035,.025,mat(style.trim||0xf0d39b))}
+ else if(outfit==='cape'){const cape=new THREE.Mesh(new THREE.ConeGeometry(.58,.72,8),coat);cape.position.set(0,1.14,-.24);cape.rotation.x=Math.PI;cape.scale.z=.65;body.add(cape)}
+ else if(outfit==='puffer'){for(let j=0;j<3;j++){const band=new THREE.Mesh(new THREE.TorusGeometry(.43-j*.025,.045,6,18),fur);band.position.y=.82+j*.23;body.add(band)}}
  // Rounded scarf wrap and soft hanging end instead of a square neck block.
  const scarfRing=new THREE.Mesh(new THREE.TorusGeometry(.285,.085,8,20),scarf);
  scarfRing.rotation.x=Math.PI/2;scarfRing.position.set(0,1.55,0);body.add(scarfRing);
@@ -651,12 +659,20 @@ function character(coatColor,hatColor,scale=1,style={}){
 }
 const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'twists',hat:false,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
 const friends=[
- {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
- {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
- {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hat:false,scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
- {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',hat:false,scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
+ {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xf0c77d,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
+ {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,outfit:'knit',trim:0xe5d3a9,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
+ {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hat:false,outfit:'cape',scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
+ {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',hat:false,outfit:'hoodie',trim:0xe0c58b,scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
 ];
 friends.forEach(f=>scene.add(f.obj));
+const townsfolk=[
+{obj:character(0xb66b43,0x304c62,.76,{hair:0x3b2925,hairStyle:'long',hat:false,outfit:'hoodie',trim:0x315b70,scarf:0xe5c88d}),route:[[-11,5],[-5,8],[-2,3],[-9,0]],speed:.16,phase:0},
+{obj:character(0x426d8a,0x9a4c4c,.72,{hair:0x211b1a,hairStyle:'short',hat:false,outfit:'overalls',trim:0x253e57,scarf:0xd6b77c}),route:[[13,4],[17,8],[11,12],[7,7]],speed:.14,phase:1.4},
+{obj:character(0x9a7b48,0x315c71,.78,{hair:0x5b3829,hairStyle:'braids',hat:false,outfit:'knit',trim:0xf0d59a,scarf:0x8eb5a7}),route:[[-22,-17],[-16,-21],[-11,-18],[-16,-13]],speed:.12,phase:2.3},
+{obj:character(0x597b66,0x9b5147,.74,{hair:0x2c2422,hairStyle:'curls',hat:false,outfit:'cape',scarf:0xe8c98c}),route:[[19,-20],[24,-16],[20,-12],[15,-16]],speed:.13,phase:.6},
+{obj:character(0x805c7e,0x315c71,.7,{hair:0x6b4029,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xe3c7a0,scarf:0xd5a7a0}),route:[[2,18],[8,19],[11,15],[5,13]],speed:.15,phase:3.2},
+{obj:character(0x9b5147,0x315c71,.75,{hair:0x34261f,hairStyle:'short',hat:false,outfit:'longcoat',trim:0x4b3a58,scarf:0xc8d8e4}),route:[[-25,15],[-20,19],[-15,15],[-20,11]],speed:.11,phase:4.1}
+];townsfolk.forEach(v=>{v.obj.position.set(v.route[0][0],0,v.route[0][1]);scene.add(v.obj)});
 // Anto's black cat with animated legs and a tiny Santa hat.
 function makeAntoCat(){
  const cat=new THREE.Group(),fur=mat(0x171a20),pink=mat(0xb87579),eye=mat(0xe7c96f),hatRed=mat(0xa63f49),snow=mat(0xf4eee0);
@@ -672,6 +688,8 @@ function makeAntoCat(){
 const antoCat=makeAntoCat();scene.add(antoCat);
 const antoKittens=[makeAntoCat(),makeAntoCat(),makeAntoCat()];
 antoKittens.forEach((kitten,i)=>{kitten.scale.setScalar(.48);kitten.visible=false;scene.add(kitten);kitten.position.set(-7.8+i*.65,.0,-12.6)});
+const wildKittens=[makeAntoCat(),makeAntoCat()];wildKittens.forEach((k,i)=>{k.scale.setScalar(.43);k.visible=false;k.position.set(-19+i*.8,.02,10.5);scene.add(k)});
+const kittenNest=new THREE.Group();kittenNest.position.set(-19,.02,10.2);scene.add(kittenNest);const nestRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.13,8,20),wood);nestRing.rotation.x=Math.PI/2;nestRing.position.y=.22;kittenNest.add(nestRing);for(let i=0;i<4;i++){const blanket=sphere(kittenNest,Math.cos(i*1.57)*.28,.18,Math.sin(i*1.57)*.28,.24,[red,cream,gold,pine2][i]);blanket.scale.y=.18}
 function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+pad&&Math.abs(z-o.z)<o.hz+pad)}
 
 const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?48:mobileDevice?90:160,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
@@ -733,13 +751,16 @@ hiddenSnowflakes.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*(.75+i*.0
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
 if(!treeFinale.active&&cameraMode!=='santaVisit'){
  friends.forEach((f,i)=>{
-  const a=t*f.speed+f.phase,x=f.center.x+Math.cos(a)*f.radius,z=f.center.z+Math.sin(a)*f.radius;
+  const a=t*f.speed+f.phase;let x=f.center.x+Math.cos(a)*f.radius,z=f.center.z+Math.sin(a)*f.radius;
+  if(i===1){const skate=t*.34+f.phase;x=28+Math.cos(skate)*4.35;z=-8+Math.sin(skate)*2.35;f.obj.userData.arms[0].rotation.z=-.72;f.obj.userData.arms[1].rotation.z=.72;}
+  if(i===0){const cycle=(t+9)%54;if(cycle>17&&cycle<39){const q=cycle<25?(cycle-17)/8:cycle<31?1:1-(cycle-31)/8,sm=q*q*(3-2*q);x=THREE.MathUtils.lerp(x,-19,sm);z=THREE.MathUtils.lerp(z,10.2,sm);f.obj.userData.body.position.x=cycle>24&&cycle<34?.08:0;if(cycle>23&&cycle<36)wildKittens.forEach((k,j)=>{k.visible=true;k.position.set(-19+(j-.5)*.8,.02+Math.abs(Math.sin(t*5+j))*.07,10.8);k.rotation.y=Math.sin(t*1.8+j)*.25;k.userData.legs.forEach((leg,n)=>leg.rotation.x=Math.sin(t*7+j+n*Math.PI)*.2)})}}
   if(!hitsHouse(x,z,.62)){f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=-a}
   const gait=t*f.speed*f.radius*5+i;
-  f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(gait+j*Math.PI)*.58);
+  f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=i===1?Math.sin(t*4+j*Math.PI)*.18:Math.sin(gait+j*Math.PI)*.58);
   f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);
   f.obj.userData.body.position.y=Math.abs(Math.sin(gait*2))*.035;
  });
+ townsfolk.forEach((v,i)=>{const p=v.route,phase=(t*v.speed+v.phase)%p.length,idx=Math.floor(phase),q=phase-idx,a=p[idx],b=p[(idx+1)%p.length],x=THREE.MathUtils.lerp(a[0],b[0],q),z=THREE.MathUtils.lerp(a[1],b[1],q);v.obj.position.set(x,Math.abs(Math.sin(t*5+i))*.025,z);v.obj.rotation.y=Math.atan2(b[0]-a[0],b[1]-a[1]);const gait=t*5+i;v.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(gait+j*Math.PI)*.38);v.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.2)});
  // Cat has its own eased follow movement, turning and walking beside Anto rather than being dragged.
  const ant=friends[0].obj,angle=ant.rotation.y,ox=-.85*Math.cos(angle)+.45*Math.sin(angle),oz=.85*Math.sin(angle)+.45*Math.cos(angle);
  const targetX=ant.position.x+ox,targetZ=ant.position.z+oz,dx=targetX-antoCat.position.x,dz=targetZ-antoCat.position.z;
