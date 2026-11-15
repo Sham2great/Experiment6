@@ -439,7 +439,7 @@ function updateTreeFinale(now,dt){
  }
 }
 let snowflakesFound=0;
-const santaVisit={active:false,done:false,start:0,group:null,santa:null,reindeer:[],bells:[],lastCaption:-1,sack:null,sham:null,gifts:[],crowdStarts:[],crowdTargets:[]};
+const santaVisit={active:false,done:false,start:0,group:null,santa:null,reindeer:[],bells:[],lastCaption:-1,sack:null,sackBody:null,sackNeck:null,sackTie:null,sham:null,gifts:[],crowdStarts:[],crowdTargets:[]};
 function buildSantaVisit(){
  const sleigh=new THREE.Group(),sleighRed=mat(0x9d303b),trim=mat(0xf0d18b,.35,.35),runner=mat(0x4a302b);
  // Curved runners, sleigh body and gold-trimmed side panels.
@@ -461,12 +461,12 @@ function buildSantaVisit(){
  santa.position.set(0,.95,-.15);sleigh.add(santa);
  const giftSack=new THREE.Group(),sackCloth=mat(0x8e2938),sackTrim=mat(0xf0d18b,.4,.25);
  const sackBody=sphere(giftSack,0,.55,0,.62,sackCloth);sackBody.scale.set(.92,1.12,.8);
- cylinder(giftSack,0,1.08,0,.34,.38,.24,sackCloth);
+ const sackNeck=cylinder(giftSack,0,1.08,0,.34,.38,.24,sackCloth);
  const sackTie=new THREE.Mesh(new THREE.TorusGeometry(.34,.05,7,20),sackTrim);sackTie.rotation.x=Math.PI/2;sackTie.position.y=1.19;giftSack.add(sackTie);
  sphere(giftSack,0,1.22,0,.1,sackTrim);
  const sham=character(0x315c71,0x8f4149,.82,{name:'SHAM',gender:'female',hair:0x342a28,hairStyle:'twists',hairLong:true,hat:false,outfit:'longcoat',trim:0x20394a,scarf:0xe5c98f});
  sham.position.set(0,-.45,0);sham.scale.setScalar(.001);giftSack.add(sham);
- giftSack.position.set(0,.78,-1.2);sleigh.add(giftSack);santaVisit.sack=giftSack;santaVisit.sham=sham;
+ giftSack.position.set(0,.78,-1.2);sleigh.add(giftSack);santaVisit.sack=giftSack;santaVisit.sackBody=sackBody;santaVisit.sackNeck=sackNeck;santaVisit.sackTie=sackTie;santaVisit.sham=sham;
  // Reindeer line up in front of the sleigh, each with antlers and a glowing nose.
  const deerMat=mat(0x805236),antlerMat=mat(0xd6b58a),noseMat=new THREE.MeshStandardMaterial({color:0xff5555,emissive:0xff2525,emissiveIntensity:1.8});
  for(let i=0;i<3;i++){
@@ -494,7 +494,7 @@ function beginSantaVisit(){
  releaseControls();buildSantaVisit();santaVisit.active=true;santaVisit.start=performance.now();santaVisit.lastCaption=-1;
  const crowd=[player,...friends.map(f=>f.obj)];
  santaVisit.crowdStarts=crowd.map(ch=>ch.position.clone());
- santaVisit.crowdTargets=[new THREE.Vector3(-6.8,0,-9.2),new THREE.Vector3(-3.35,0,-10.1),new THREE.Vector3(0,0,-8.8),new THREE.Vector3(3.35,0,-10.1),new THREE.Vector3(6.8,0,-9.2)];
+ santaVisit.crowdTargets=[new THREE.Vector3(-6.8,0,-3.8),new THREE.Vector3(-3.35,0,-4.8),new THREE.Vector3(0,0,-3.5),new THREE.Vector3(3.35,0,-4.8),new THREE.Vector3(6.8,0,-3.8)];
  cameraMode='santaVisit';document.body.classList.add('santa-visit-active');
  const ui=document.getElementById('treeFinaleOverlay');
  if(ui){ui.classList.add('show');finaleCaption('A MAGICAL SURPRISE','Look up…','Someone special is on their way to the village!')}
@@ -505,7 +505,7 @@ function updateSantaVisit(now,dt){
  const e=(now-santaVisit.start)/1000,g=santaVisit.group,clamp=THREE.MathUtils.clamp,smooth=v=>v*v*(3-2*v);
  // Sleigh arrives and settles at the edge of the village square.
  const arrival=smooth(clamp(e/7.5,0,1));
- g.position.set(THREE.MathUtils.lerp(-43,0,arrival),THREE.MathUtils.lerp(8,0,clamp((e-1)/7.5,0,1)),-19);
+ g.position.set(THREE.MathUtils.lerp(-43,0,arrival),THREE.MathUtils.lerp(8,0,clamp((e-1)/7.5,0,1)),-10.5);
  g.rotation.y=0;
  santaVisit.reindeer.forEach((d,i)=>{d.rotation.z=Math.sin(e*8+i)*.025;d.position.y=Math.abs(Math.sin(e*9+i))*.055});
  santaVisit.bells.forEach((b,i)=>{b.position.y=1.5+Math.sin(e*13+i)*.06;b.scale.setScalar(.9+Math.sin(e*13+i)*.07)});
@@ -518,8 +518,8 @@ function updateSantaVisit(now,dt){
   ch.userData.body.position.y=0;
  });
  // A close establishing shot of Santa, then a wide shot as the whole village gathers.
- const closePos=new THREE.Vector3(5.8,4.2,-15.8),closeLook=new THREE.Vector3(0,2.0,-18.2);
- const widePos=new THREE.Vector3(8.5,9.2,-16.2),wideLook=new THREE.Vector3(0,1.5,-14.1);
+ const closePos=new THREE.Vector3(10.5,5.5,-5.8),closeLook=new THREE.Vector3(0,2.0,-7.5);
+ const widePos=new THREE.Vector3(14,10.5,-2.5),wideLook=new THREE.Vector3(0,1.6,-6.2);
  let camPos=closePos,look=closeLook;
  if(e>=9&&e<14){camPos=widePos;look=wideLook}
  // Sham's surprise remains part of Santa's arrival, revealed in a close-up.
@@ -527,64 +527,73 @@ function updateSantaVisit(now,dt){
  santaVisit.santa.userData.arms[0].rotation.x=waving?-2.15:0;
  santaVisit.santa.userData.arms[0].rotation.z=waving?-.28:0;
  if(e>7.5&&santaVisit.lastCaption!==1){finaleCaption('SANTA HAS ARRIVED','A little Christmas magic…','Everyone, come gather around!');santaVisit.lastCaption=1;window.dispatchEvent(new CustomEvent('winter-santa-arrived'))}
- const pop=smooth(clamp((e-8.2)/2.1,0,1));
+ const sackOpen=smooth(clamp((e-8.5)/6.5,0,1));
+ santaVisit.sackNeck.scale.y=1-.48*sackOpen;santaVisit.sackNeck.rotation.z=-.12*sackOpen;santaVisit.sackTie.scale.setScalar(1-.28*sackOpen);santaVisit.sackBody.scale.y=1.12+.12*sackOpen;
+ const pop=smooth(clamp((e-10.2)/6.8,0,1));
  if(!santaVisit.shamReleased){
-  santaVisit.sham.position.y=THREE.MathUtils.lerp(-.45,1.02,pop);
+  santaVisit.sham.position.y=THREE.MathUtils.lerp(-.45,1.08,pop);
   santaVisit.sham.scale.setScalar(.001+.82*pop);
   santaVisit.sham.userData.arms.forEach((arm,i)=>{arm.rotation.x=pop>.65?-2.05:0;arm.rotation.z=pop>.65?(i===0?-.28:.28):0});
-  if(e>=12.2){
+  if(e>=17){
    santaVisit.sham.updateMatrixWorld(true);scene.attach(santaVisit.sham);
    santaVisit.sham.scale.setScalar(.82);santaVisit.sham.position.y=0;
    santaVisit.sham.rotation.y=Math.PI/2;
    santaVisit.shamStart=santaVisit.sham.position.clone();santaVisit.shamReleased=true;
   }
  }else{
-  const walkOut=smooth(clamp((e-12.2)/3.2,0,1)),walkAround=smooth(clamp((e-15.4)/5.2,0,1));
+  const walkOut=smooth(clamp((e-17)/3.6,0,1)),walkAround=smooth(clamp((e-20.6)/5.2,0,1));
   const firstStop=santaVisit.shamStart.clone().add(new THREE.Vector3(-8.5,0,1.2)),finalStop=new THREE.Vector3(-8.8,0,-7.2);
-  if(e<15.4){santaVisit.sham.position.lerpVectors(santaVisit.shamStart,firstStop,walkOut);santaVisit.sham.rotation.y=Math.PI/2}
+  if(e<20.6){santaVisit.sham.position.lerpVectors(santaVisit.shamStart,firstStop,walkOut);santaVisit.sham.rotation.y=Math.PI/2}
   else{santaVisit.sham.position.lerpVectors(firstStop,finalStop,walkAround);santaVisit.sham.rotation.y=Math.PI}
-  const walking=e<20.6;
+  const walking=e<25.8;
   santaVisit.sham.userData.legs.forEach((leg,j)=>leg.rotation.x=walking?Math.sin(e*7+j*Math.PI)*.34:0);
   santaVisit.sham.userData.arms.forEach((arm,j)=>arm.rotation.x=walking?Math.sin(e*7+j*Math.PI)*.22:0);
  }
- if(e>10.3&&santaVisit.lastCaption!==2){finaleCaption('SURPRISE!','IT’S SHAM!','Sham has climbed out of Santa’s sack!');santaVisit.lastCaption=2}
+ if(e>17.5&&santaVisit.lastCaption!==2){finaleCaption('SURPRISE!','IT’S SHAM!','Sham has climbed out of Santa’s sack!');santaVisit.lastCaption=2}
  // The kittens trot over to Anto while everyone watches.
- const kittenReveal=smooth(clamp((e-12)/3.2,0,1));
+ const kittenReveal=smooth(clamp((e-23)/5,0,1));
  antoKittens.forEach((kitten,i)=>{
-  if(e>12)kitten.visible=true;
-  if(kitten.visible){kitten.scale.setScalar(.48);const sx=g.position.x+(i-1)*.48,sz=g.position.z-1.5,tx=santaVisit.crowdTargets[1].x+(i-1)*.62,tz=santaVisit.crowdTargets[1].z+.9;kitten.position.set(THREE.MathUtils.lerp(sx,tx,kittenReveal),.05+Math.abs(Math.sin(e*7+i*1.8))*.13+Math.sin(kittenReveal*Math.PI)*.3,THREE.MathUtils.lerp(sz,tz,kittenReveal));kitten.rotation.y=Math.PI}
+  if(e>23)kitten.visible=true;
+  if(kitten.visible){kitten.scale.setScalar(.48);const sx=g.position.x+(i-1)*.48,sz=g.position.z+1.5,tx=santaVisit.crowdTargets[1].x+(i-1)*.62,tz=santaVisit.crowdTargets[1].z+.9;kitten.position.set(THREE.MathUtils.lerp(sx,tx,kittenReveal),.05+Math.abs(Math.sin(e*7+i*1.8))*.13+Math.sin(kittenReveal*Math.PI)*.3,THREE.MathUtils.lerp(sz,tz,kittenReveal));kitten.rotation.y=Math.PI}
  });
- // Santa takes each present from the sack, then places it into the recipient's hands.
- const recipients=[player,...friends.map(f=>f.obj)],giftWindows=[[16,20.2],[22,26.2],[28,32.2],[34,38.2],[40,44.2]];
+ // Every gift is held between the recipient's real palms, not floated at an arbitrary chest offset.
+ const recipients=[player,...friends.map(f=>f.obj)],giftWindows=[[29,34.8],[35.8,41.6],[42.6,48.4],[49.4,55.2],[56.2,62]];
  santaVisit.gifts.forEach((gift,i)=>{
-  const [begin,finish]=giftWindows[i],recipient=recipients[i],active=e>=begin&&e<=finish+0.2;
-  const progress=clamp((e-begin)/2.7,0,1),pickup=smooth(clamp(progress/.34,0,1)),handoff=smooth(clamp((progress-.34)/.66,0,1));
-  const receiving=e>=begin+1.45;
-  if(e>=begin+1.05){
-   recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-.98,0,j===0?-.14:.14));
-  }
+  const [begin,finish]=giftWindows[i],recipient=recipients[i],active=e>=begin&&e<=finish;
+  const progress=clamp((e-begin)/5.8,0,1),pickup=smooth(clamp(progress/.32,0,1)),handoff=smooth(clamp((progress-.32)/.38,0,1));
+  if(e>=begin+.85)recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-1.02,0,j===0?.5:-.5));
   recipient.updateMatrixWorld(true);
-  const holdPoint=recipient.localToWorld(new THREE.Vector3(0,1.12,.55)).clone();
+  const leftHand=recipient.userData.arms[0].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+  const rightHand=recipient.userData.arms[1].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+  const holdPoint=leftHand.add(rightHand).multiplyScalar(.5).add(new THREE.Vector3(0,-.14,0));
   const sackMouth=g.localToWorld(new THREE.Vector3(0,2.0,-1.2)).clone();
   const santaArm=santaVisit.santa.userData.arms[1];
-  const santaReceiving=active&&e<begin+2.7;
-  if(santaReceiving)santaArm.rotation.set(-1.2,0,.28);
+  if(active&&e<begin+2.4)santaArm.rotation.set(-1.2,0,.28);else santaArm.rotation.set(0,0,0);
   santaVisit.santa.updateMatrixWorld(true);
   const santaHand=santaArm.localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
   const giftStart=sackMouth.clone().lerp(santaHand,pickup);
-  gift.visible=e>=begin;
-  if(e<begin+2.7)gift.position.copy(giftStart.lerp(holdPoint,handoff));
-  else gift.position.copy(holdPoint);
-  gift.rotation.set(0,Math.sin(e*1.5+i)*.025,0);
-  if(e>=begin&&e<begin+.3&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'For being good this year!':'For being such a wonderful friend!','Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
-  // Once delivered, keep the box in the villager's hands for the group portrait.
-  if(e>begin+2.7)gift.position.copy(holdPoint);
+  gift.visible=e>=begin;gift.position.copy(giftStart.lerp(holdPoint,handoff));
+  gift.rotation.set(0,recipient.rotation.y+Math.sin(e*1.2+i)*.012,0);
+  if(e>=begin+4.05&&e<begin+6.8){
+   if(i===1){
+    const hop=Math.abs(Math.sin((e-(begin+4.05))*Math.PI*2.15));
+    recipient.position.y=hop*.62;recipient.userData.body.position.y=hop*.1;
+    recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-2.35,0,j===0?.32:-.32));
+    recipient.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin((e-begin)*Math.PI*2+j*Math.PI)*.42);
+   }else if(e<begin+4.8)recipient.userData.body.position.y=.08;
+  }
+  if(e>=begin&&e<begin+.7&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'A little Christmas present…':'Something special for you…',i===1?'Anto, you have made this village brighter. Merry Christmas!':'Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
  });
- // Final group portrait: all five villagers, Santa, sleigh and kittens in one frame.
- if(e>=45){camPos=new THREE.Vector3(12.5,11.5,-17.5);look=new THREE.Vector3(0,1.4,-9.2);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
- camera.position.lerp(camPos,Math.min(1,dt*2.2));camera.lookAt(look);
- if(e>49){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
+ if(e>=64){camPos=new THREE.Vector3(13.5,10.5,1.5);look=new THREE.Vector3(0,1.5,-6);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
+ camera.position.lerp(camPos,Math.min(1,dt*1.15));camera.lookAt(look);
+ if(e>70){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';hiddenBells.forEach(b=>b.visible=true);document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
 }
+
+// Five golden bells become collectible after Santa's visit.
+const hiddenBells=[],bellSpots=[[-23,5],[23,5],[-24,-24],[24,-22],[0,24]];
+bellSpots.forEach(([x,z],i)=>{const bell=new THREE.Group();bell.position.set(x,.9,z);bell.userData.baseY=.9;const metal=mat(0xf0c75e,.55,.22);const cup=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9,0,Math.PI*2,0,Math.PI*.72),metal);cup.position.y=-.05;bell.add(cup);const rim=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,7,16),metal);rim.position.y=-.2;bell.add(rim);cylinder(bell,0,.19,0,.045,.045,.12,metal);sphere(bell,0,-.28,0,.055,metal);bell.visible=false;scene.add(bell);hiddenBells.push(bell)});
+let bellsFound=0;
+function collectGoldenBell(bell){bell.visible=false;bellsFound++;window.dispatchEvent(new CustomEvent('winter-bell-found',{detail:{count:bellsFound}}));if(bellsFound===5){document.getElementById('sceneHint').textContent='ALL FIVE GOLDEN BELLS FOUND ✦ THE VILLAGE IS COMPLETE!';window.dispatchEvent(new CustomEvent('winter-bell-complete'))}}
 function collectSnowflake(g){g.visible=false;snowflakesFound++;window.dispatchEvent(new CustomEvent('winter-snowflake-found',{detail:{count:snowflakesFound}}));if(snowflakesFound===8){document.getElementById('sceneHint').textContent='ALL EIGHT SNOWFLAKES FOUND ✦ LOOK TO THE SKY!';window.dispatchEvent(new CustomEvent('winter-snowflake-complete'));beginSantaVisit();}}
 function collectGift(g){
  g.visible=false;giftsFound++;window.dispatchEvent(new CustomEvent('winter-gift-found',{detail:{count:giftsFound}}));
@@ -758,6 +767,7 @@ document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene
 let lastRender=0;const targetFrame=1000/(lowEndDevice?30:60);function animate(now=0){requestAnimationFrame(animate);if(document.visibilityState!=='visible'||now-lastRender<targetFrame)return;const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
 hiddenGifts.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*.8;g.position.y=g.userData.baseY+Math.sin(t*2.1+i)*.1;if(started&&player.position.distanceTo(g.position)<1.45)collectGift(g)});
 hiddenSnowflakes.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*(.75+i*.025);g.position.y=g.userData.baseY+Math.sin(t*2.4+i)*.13;if(treeFinale.done&&player.position.distanceTo(g.position)<1.35)collectSnowflake(g)});
+hiddenBells.forEach((b,i)=>{if(!b.visible)return;b.rotation.y+=dt*.8;b.position.y=b.userData.baseY+Math.sin(t*2.8+i)*.12;if(santaVisit.done&&player.position.distanceTo(b.position)<1.5)collectGoldenBell(b)});
 const pos=snowParticles.attributes.position.array;for(let i=0;i<count;i++){pos[i*3+1]-=velocities[i];pos[i*3]+=Math.sin(t*.5+i)*.002;if(pos[i*3+1]<0){pos[i*3+1]=34;pos[i*3]=(Math.random()-.5)*90}}snowParticles.attributes.position.needsUpdate=true;
 if(!treeFinale.active&&cameraMode!=='santaVisit'){
  friends.forEach((f,i)=>{
