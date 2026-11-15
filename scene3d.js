@@ -395,7 +395,7 @@ let cinemaStart=performance.now();
 function focusOn(place){releaseControls();const p=place==='cabin'?new THREE.Vector3(-12,2,-5):place==='workshop'?new THREE.Vector3(12,2,-10):new THREE.Vector3(0,3,-13);cameraMode='focus';focusStart=performance.now();focusFrom=camera.position.clone();focusTo=p.clone().add(new THREE.Vector3(0,9,13));focusLook=p}
 let focusStart=0,focusFrom=new THREE.Vector3(),focusTo=new THREE.Vector3(),focusLook=new THREE.Vector3();
 document.getElementById('cinematicBtn').addEventListener('click',cinematic);
-document.getElementById('enterWorld').addEventListener('click',()=>{releaseControls();started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD / ARROWS MOVE  •  HOLD SHIFT TO SPRINT  •  DRAG TO LOOK  •  E TO INTERACT  •  FIND 6 PRESENTS'});
+document.getElementById('enterWorld').addEventListener('click',()=>{releaseControls();started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD MOVE  •  ARROWS TURN CAMERA  •  HOLD SHIFT TO SPRINT  •  DRAG TO LOOK  •  E TO INTERACT  •  FIND 6 PRESENTS'});
 document.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.place!=='tree')focusOn(b.dataset.place)}));
 document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene.background.getHex()===0x081827;scene.background.set(day?new THREE.Color(0x9bc6d1):new THREE.Color(0x081827));scene.fog.color.set(day?0xa8d0d4:0x9bb9c5);moon.intensity=day?1.15:2.5;warm.intensity=day?20:65});
 
@@ -422,14 +422,20 @@ if(!treeFinale.active){
  antoCat.userData.tail.rotation.z=Math.sin(t*3.5)*.3;
  }
 const canControl=started&&cameraMode==='follow';
-const sprinting=canControl&&!!keys.shift,moving=canControl&&(keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright);
+const sprinting=canControl&&!!keys.shift,moving=canControl&&(keys.w||keys.s||keys.a||keys.d);
 const gaitSpeed=sprinting?19:13;
 player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI)*(sprinting?.82:.62):0);
 player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI+Math.PI)*(sprinting?.58:.4):0);
 player.userData.body.position.y=moving?Math.abs(Math.sin(t*gaitSpeed*2))*(sprinting?.075:.045):0;
 if(canControl){
+ // Arrow keys control the camera independently of WASD character movement.
+ const cameraTurnSpeed=1.85*dt;
+ if(keys.arrowleft)yaw-=cameraTurnSpeed;
+ if(keys.arrowright)yaw+=cameraTurnSpeed;
+ if(keys.arrowup)pitch=THREE.MathUtils.clamp(pitch-cameraTurnSpeed*.72,-.22,.9);
+ if(keys.arrowdown)pitch=THREE.MathUtils.clamp(pitch+cameraTurnSpeed*.72,-.22,.9);
  forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);
- if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);
+ if(keys.w)move.add(forward);if(keys.s)move.sub(forward);if(keys.a)move.sub(sideMove);if(keys.d)move.add(sideMove);
  if(move.lengthSq()>0){
   move.normalize();const distance=dt*(sprinting?8.6:5.2),dx=move.x*distance,dz=move.z*distance,px=player.position.x,pz=player.position.z;
   const blockedAt=(x,z,axis)=>solidObstacles.some(o=>{
