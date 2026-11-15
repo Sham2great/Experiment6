@@ -645,6 +645,9 @@ function character(coatColor,hatColor,scale=1,style={}){
   for(let i=0;i<24;i++){const a=i/24*Math.PI*2,x=Math.cos(a)*.325,z=Math.sin(a)*.325;addLock(x,1.43,z,.056,.76,Math.sin(a)*.16);sphere(body,x,.99,z,.058,hair)}
   for(let i=0;i<7;i++)addLock(-.27+i*.09,1.91,.32,.042,.25,(i-3)*.19);
   for(let i=0;i<4;i++)addLock(-.25+i*.17,1.35,-.31,.052,.78,(i-1.5)*.09);
+ }else if(hairStyle==='afro'){
+  const rounded=new THREE.Mesh(new THREE.SphereGeometry(.44,24,18),hair);rounded.scale.set(1.12,1.02,1.02);rounded.position.set(0,1.99,-.105);body.add(rounded);
+  for(const side of [-1,1]){const sideMass=sphere(body,side*.31,1.66,-.055,.22,hair);sideMass.scale.set(.9,1.18,.92)}
  }else if(hairStyle==='bob'){
   const back=new THREE.Mesh(new THREE.SphereGeometry(.37,16,12),hair);back.scale.set(1.02,1.12,.92);back.position.set(0,1.78,-.12);body.add(back);
   for(const side of [-1,1])addLock(side*.32,1.62,.03,.105,.4,side*-.12);
@@ -691,7 +694,7 @@ function character(coatColor,hatColor,scale=1,style={}){
  if(style.name)root.add(nameTag(style.name));
  root.userData.body=body;root.userData.legs=legs;root.userData.arms=arms;root.scale.setScalar(scale);return root;
 }
-const player=character(0x315c71,0x8f4149,.88,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'twists',hat:true,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
+const player=character(0x315c71,0x8f4149,.88,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'afro',hat:true,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
 const friends=[
  {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xf0c77d,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
  {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,outfit:'knit',trim:0xe5d3a9,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
