@@ -562,6 +562,7 @@ function updateSantaVisit(now,dt){
   const [begin,finish]=giftWindows[i],recipient=recipients[i],active=e>=begin&&e<=finish;
   const progress=clamp((e-begin)/5.8,0,1),pickup=smooth(clamp(progress/.32,0,1)),handoff=smooth(clamp((progress-.32)/.38,0,1));
   if(e>=begin+.85)recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-1.02,0,j===0?.5:-.5));
+  if(i===1&&e>=begin+4.05&&e<begin+6.8){const hop=Math.abs(Math.sin((e-(begin+4.05))*Math.PI*2.15));recipient.position.y=hop*.62;recipient.userData.body.position.y=hop*.1;recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-2.35,0,j===0?.32:-.32));recipient.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin((e-begin)*Math.PI*2+j*Math.PI)*.42)}
   recipient.updateMatrixWorld(true);
   const leftHand=recipient.userData.arms[0].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
   const rightHand=recipient.userData.arms[1].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
@@ -574,14 +575,7 @@ function updateSantaVisit(now,dt){
   const giftStart=sackMouth.clone().lerp(santaHand,pickup);
   gift.visible=e>=begin;gift.position.copy(giftStart.lerp(holdPoint,handoff));
   gift.rotation.set(0,recipient.rotation.y+Math.sin(e*1.2+i)*.012,0);
-  if(e>=begin+4.05&&e<begin+6.8){
-   if(i===1){
-    const hop=Math.abs(Math.sin((e-(begin+4.05))*Math.PI*2.15));
-    recipient.position.y=hop*.62;recipient.userData.body.position.y=hop*.1;
-    recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-2.35,0,j===0?.32:-.32));
-    recipient.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin((e-begin)*Math.PI*2+j*Math.PI)*.42);
-   }else if(e<begin+4.8)recipient.userData.body.position.y=.08;
-  }
+  if(i!==1&&e>=begin+4.05&&e<begin+4.8)recipient.userData.body.position.y=.08;
   if(e>=begin&&e<begin+.7&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'A little Christmas present…':'Something special for you…',i===1?'Anto, you have made this village brighter. Merry Christmas!':'Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
  });
  if(e>=64){camPos=new THREE.Vector3(13.5,10.5,1.5);look=new THREE.Vector3(0,1.5,-6);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
