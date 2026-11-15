@@ -275,7 +275,7 @@ function updateTreeFinale(now,dt){
  if(e>18.3&&e<20.5&&Math.floor(e*(lowEndDevice?4:7))!==Math.floor((e-dt)*(lowEndDevice?4:7))){for(let i=0;i<(lowEndDevice?2:3)&&treeFinale.particles.length<maxFinaleParticles;i++){const p=new THREE.Mesh(finaleParticleGeometry,new THREE.MeshBasicMaterial({color:i%2?0xffe4a0:0xd8f5f0}));const angle=Math.random()*Math.PI*2,r=.8+Math.random()*1.8;p.position.set(Math.cos(angle)*r,3.8+Math.random()*2.2,treeZ+Math.sin(angle)*r);p.userData.velocity=new THREE.Vector3(-p.position.x*.2,.65+Math.random()*.45,(treeZ-p.position.z)*.2);scene.add(p);treeFinale.particles.push(p)}}
  treeFinale.particles.forEach(p=>{p.position.addScaledVector(p.userData.velocity,dt);p.material.opacity=Math.max(0,p.material.opacity-.35*dt);p.scale.multiplyScalar(.99)});treeFinale.particles=treeFinale.particles.filter(p=>{if(p.material.opacity<=.01){scene.remove(p);p.material.dispose();return false}return true});
  const celebrating=e>=22.5;
- if(celebrating){const gather=smooth(clamp((e-22.5)/2.1,0,1));villagers.forEach((ch,i)=>{const [px,pz]=partySpots[i],dance=e-24.6,phase=i*Math.PI*.65;ch.position.x=THREE.MathUtils.lerp(ch.position.x,px,gather);ch.position.z=THREE.MathUtils.lerp(ch.position.z,pz,gather);const bounce=dance>0?Math.max(0,Math.sin(dance*7.2+phase))*.42:0;ch.position.y=bounce+Math.abs(Math.sin(dance*3.6+phase))*.035;ch.rotation.y=Math.atan2(-ch.position.x,treeZ-ch.position.z);ch.userData.legs.forEach((leg,j)=>leg.rotation.x=dance>0?Math.sin(dance*7.2+phase+j*Math.PI)*.72:0);ch.userData.arms.forEach((arm,j)=>{arm.rotation.x=dance>0?-.9-Math.max(0,Math.sin(dance*7.2+phase))*1.05:0;arm.rotation.z=(j===0?-1:1)*(dance>0?.35+Math.abs(Math.sin(dance*7.2+phase))*.3:0)});ch.userData.body.position.y=bounce*.18});const catTarget=friends[0].obj.position.clone().add(new THREE.Vector3(-.8,0,.5));antoCat.position.lerp(catTarget,Math.min(1,dt*2.8));antoCat.position.y=Math.max(0,Math.sin((e-24.6)*7.2+1)*.18);antoCat.userData.tail.rotation.z=Math.sin(e*5)*.55;antoKittens.forEach((kitten,i)=>{kitten.position.set(friends[0].obj.position.x-1.05+i*.68,.04+Math.abs(Math.sin(e*5+i*1.7))*.12,friends[0].obj.position.z+.65);kitten.rotation.y=Math.sin(e*2+i)*.15})}
+ if(celebrating){const gather=smooth(clamp((e-22.5)/2.1,0,1));villagers.forEach((ch,i)=>{const [px,pz]=partySpots[i],dance=e-24.6,phase=i*Math.PI*.65;ch.position.x=THREE.MathUtils.lerp(ch.position.x,px,gather);ch.position.z=THREE.MathUtils.lerp(ch.position.z,pz,gather);const bounce=dance>0?Math.max(0,Math.sin(dance*7.2+phase))*.42:0;ch.position.y=bounce+Math.abs(Math.sin(dance*3.6+phase))*.035;ch.rotation.y=Math.atan2(-ch.position.x,treeZ-ch.position.z);ch.userData.legs.forEach((leg,j)=>leg.rotation.x=dance>0?Math.sin(dance*7.2+phase+j*Math.PI)*.72:0);ch.userData.arms.forEach((arm,j)=>{arm.rotation.x=dance>0?-.9-Math.max(0,Math.sin(dance*7.2+phase))*1.05:0;arm.rotation.z=(j===0?-1:1)*(dance>0?.35+Math.abs(Math.sin(dance*7.2+phase))*.3:0)});ch.userData.body.position.y=bounce*.18});const catTarget=friends[0].obj.position.clone().add(new THREE.Vector3(-.8,0,.5));antoCat.position.lerp(catTarget,Math.min(1,dt*2.8));antoCat.position.y=Math.max(0,Math.sin((e-24.6)*7.2+1)*.18);antoCat.userData.tail.rotation.z=Math.sin(e*5)*.55;antoKittens.forEach((kitten,i)=>{if(kitten.visible){kitten.position.set(friends[0].obj.position.x-1.05+i*.68,.04+Math.abs(Math.sin(e*5+i*1.7))*.12,friends[0].obj.position.z+.65);kitten.rotation.y=Math.sin(e*2+i)*.15}})}
  const camP=e<7.8?new THREE.Vector3(0,7.4,treeZ+14):e<17?new THREE.Vector3(6,7,treeZ+10):celebrating?new THREE.Vector3(0,10.5,treeZ+19):new THREE.Vector3(0,9,treeZ+15);camera.position.lerp(camP,1-Math.pow(.001,dt));camera.lookAt(0,2.8,treeZ);
  if(e<1.8&&treeFinale.lastCaption!==0){finaleCaption('A CHRISTMAS PROMISE','One last little wonder…','The village is waiting for its brightest star.');treeFinale.lastCaption=0}
  if(e>3.4&&treeFinale.lastCaption!==1){finaleCaption('A GIFT FOR ANTO','Look what we found…','Twain has brought every last present home.');treeFinale.lastCaption=1}
@@ -360,6 +360,19 @@ function updateSantaVisit(now,dt){
  santaVisit.sham.userData.arms.forEach((arm,i)=>{arm.rotation.x=pop>.65?-2.05:0;arm.rotation.z=pop>.65?(i===0?-.28:.28):0});
  if(e>11.3&&santaVisit.lastCaption!==2){finaleCaption('SURPRISE!','IT’S SHAM!','A little Christmas surprise just popped out of Santa’s sack.');santaVisit.lastCaption=2}
  if(e>15&&santaVisit.lastCaption!==3){finaleCaption('A LITTLE GIFT FOR YOU','Merry Christmas, Sham!','You helped bring Christmas back to the village.');santaVisit.lastCaption=3}
+ // Santa opens his sack and sends three tiny kittens to Anto.
+ const kittenReveal=THREE.MathUtils.clamp((e-12.2)/3.4,0,1),kittenEase=kittenReveal*kittenReveal*(3-2*kittenReveal);
+ antoKittens.forEach((kitten,i)=>{
+  if(e>12.2)kitten.visible=true;
+  if(kitten.visible){
+   kitten.scale.setScalar(.48);
+   const startX=g.position.x+(i-1)*.48,startZ=g.position.z-1.5;
+   const endX=friends[0].obj.position.x+(i-1)*.72,endZ=friends[0].obj.position.z+.72;
+   kitten.position.set(THREE.MathUtils.lerp(startX,endX,kittenEase),.05+Math.abs(Math.sin(e*7+i*1.8))*.16+Math.sin(kittenReveal*Math.PI)*.55,THREE.MathUtils.lerp(startZ,endZ,kittenEase));
+   kitten.rotation.y=Math.sin(e*2+i)*.2;
+  }
+ });
+ if(e>12.2&&santaVisit.lastCaption<4){finaleCaption('THREE TINY SURPRISES','KITTENS FOR ANTO!','Santa brought Anto three little kittens to join her first cat.');santaVisit.lastCaption=4}
  const target=new THREE.Vector3(0,3.4,-12);
  const cam=new THREE.Vector3(8,8,3);
  camera.position.lerp(cam,Math.min(1,dt*1.8));camera.lookAt(target);
@@ -456,7 +469,7 @@ function makeAntoCat(){
 }
 const antoCat=makeAntoCat();scene.add(antoCat);
 const antoKittens=[makeAntoCat(),makeAntoCat(),makeAntoCat()];
-antoKittens.forEach((kitten,i)=>{kitten.scale.setScalar(.48);scene.add(kitten);kitten.position.set(-7.8+i*.65,.0,-12.6)});
+antoKittens.forEach((kitten,i)=>{kitten.scale.setScalar(.48);kitten.visible=false;scene.add(kitten);kitten.position.set(-7.8+i*.65,.0,-12.6)});
 function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+pad&&Math.abs(z-o.z)<o.hz+pad)}
 
 const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?48:mobileDevice?90:160,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
@@ -536,6 +549,9 @@ if(!treeFinale.active){
  antoCat.userData.tail.rotation.z=Math.sin(t*3.5)*.3;
  antoKittens.forEach((kitten,i)=>{const side=(i-1)*.62;kitten.position.x=antoCat.position.x+side;kitten.position.z=antoCat.position.z+.58+Math.abs(side)*.16;kitten.position.y=.015+Math.abs(Math.sin(t*5+i*1.8))*.08;kitten.rotation.y=antoCat.rotation.y+Math.sin(t*1.7+i)*.16;kitten.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(t*7+i+j*Math.PI)*.18);kitten.userData.tail.rotation.z=Math.sin(t*3+i)*.22});
  }
+if(santaVisit.done){
+ antoKittens.forEach((kitten,i)=>{if(!kitten.visible)return;const ant=friends[0].obj,angle=ant.rotation.y,offset=(i-1)*.68;const tx=ant.position.x+offset-.35*Math.cos(angle),tz=ant.position.z+.72+.25*Math.sin(angle);kitten.position.x+=(tx-kitten.position.x)*Math.min(1,dt*3.2);kitten.position.z+=(tz-kitten.position.z)*Math.min(1,dt*3.2);kitten.position.y=.02+Math.abs(Math.sin(t*5+i*1.8))*.08;kitten.rotation.y=ant.rotation.y+Math.sin(t*1.7+i)*.16;kitten.userData.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(t*7+i+j*Math.PI)*.18);kitten.userData.tail.rotation.z=Math.sin(t*3+i)*.22});
+}
 const canControl=started&&cameraMode==='follow';
 const sprinting=canControl&&!!keys.shift,moving=canControl&&(keys.w||keys.s||keys.a||keys.d);
 const gaitSpeed=sprinting?19:13;
