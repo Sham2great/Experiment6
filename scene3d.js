@@ -9,7 +9,7 @@ camera.position.set(0,24,42);
 const mobileDevice=matchMedia('(max-width: 700px)').matches;
 const lowEndDevice=(navigator.deviceMemory>0&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4)||!!navigator.connection?.saveData;
 const renderer=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,lowEndDevice?.85:mobileDevice?1.1:1.4));
+renderer.setPixelRatio(Math.min(devicePixelRatio,lowEndDevice?.75:mobileDevice?.95:1.2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=false;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -198,17 +198,22 @@ function placeCollectibleGift(x,z,color){
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.55,.025,5,16),gold);halo.rotation.x=Math.PI/2;halo.position.y=-.28;g.add(halo);
  scene.add(g);hiddenGifts.push(g);
 }
-// Six presents are scattered independently across safe, reachable parts of the village.
+// Six presents are guaranteed: random placement first, deterministic safe positions if needed.
 const giftColors=[0x9e4547,0x236052,0x315c71,0x78608c,0xb8793f,0x8c536d],giftSpots=[];
-let giftAttempts=0;
 function hitsHouseForGift(x,z){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+1.5&&Math.abs(z-o.z)<o.hz+1.5)}
-while(giftSpots.length<6&&giftAttempts++<1800){
- const x=-26+Math.random()*52,z=-27+Math.random()*48;
- if(Math.hypot(x,z-12)<7||Math.hypot(x,z+13)<5.8||Math.hypot(x-28,z+8)<7.2)continue;
- if(hitsHouseForGift(x,z)||giftSpots.some(p=>Math.hypot(x-p.x,z-p.z)<8.2))continue;
- giftSpots.push({x,z});
+function giftSpotIsSafe(x,z,minGap=7.1){
+ return x>=-29&&x<=29&&z>=-30&&z<=24&&!hitsHouseForGift(x,z)&&
+ Math.hypot(x,z-12)>=7&&Math.hypot(x,z+13)>=5.8&&Math.hypot(x-28,z+8)>=7.2&&
+ giftSpots.every(p=>Math.hypot(x-p.x,z-p.z)>=minGap);
 }
+for(let attempt=0;giftSpots.length<6&&attempt<6000;attempt++){
+ const x=-27+Math.random()*54,z=-29+Math.random()*52;
+ if(giftSpotIsSafe(x,z))giftSpots.push({x,z});
+}
+const fallbackSpots=[[-27,13],[27,12],[-27,-12],[27,-25],[-4,24],[7,-29],[-25,23],[25,22],[-28,-29],[28,-2],[0,26]];
+for(const [x,z] of fallbackSpots){if(giftSpots.length===6)break;if(giftSpotIsSafe(x,z,5.8))giftSpots.push({x,z});}
 giftSpots.forEach((p,i)=>placeCollectibleGift(p.x,p.z,giftColors[i]));
+if(giftSpots.length!==6)console.warn('Gift placement fallback could not place all six:',giftSpots.length);
 let giftsFound=0;
 function beginTreeFinale(){if(treeFinale.active||treeFinale.done)return;releaseControls();treeFinale.active=true;treeFinale.started=performance.now();document.body.classList.add('finale-active');cameraMode='treeFinale';keys={};drag=false;document.getElementById('treeStudio')?.classList.remove('open');document.getElementById('treeStudio')?.setAttribute('aria-hidden','true');const ui=document.getElementById('treeFinaleOverlay');if(ui){ui.classList.add('show');ui.querySelector('.finale-kicker').textContent='THE LAST PRESENT';ui.querySelector('.finale-title').textContent='One last little wonder…';ui.querySelector('.finale-copy').textContent='The village is waiting for its brightest star.'}}
 const treeFinale={active:false,done:false,started:0,star:null,light:null,glow:null,particles:[],lastCaption:-1};
@@ -341,14 +346,18 @@ function makeAntoCat(){
 const antoCat=makeAntoCat();scene.add(antoCat);
 function hitsHouse(x,z,pad=.5){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+pad&&Math.abs(z-o.z)<o.hz+pad)}
 
-const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?72:mobileDevice?130:240,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
+const snowParticles=new THREE.BufferGeometry(),count=lowEndDevice?48:mobileDevice?90:160,positions=new Float32Array(count*3),velocities=[];for(let i=0;i<count;i++){positions[i*3]=(Math.random()-.5)*90;positions[i*3+1]=Math.random()*34;positions[i*3+2]=(Math.random()-.5)*90;velocities.push(.025+Math.random()*.08)}snowParticles.setAttribute('position',new THREE.BufferAttribute(positions,3));const snowPoints=new THREE.Points(snowParticles,new THREE.PointsMaterial({color:0xffffff,size:.14,transparent:true,opacity:.86}));scene.add(snowPoints);
 
 let keys={},yaw=0,pitch=.18,drag=false,lastX=0,lastY=0,started=false,cinema=true,clock=new THREE.Clock(),cameraMode='follow',cameraTarget=new THREE.Vector3(0,1,0),introStart=performance.now();
 function releaseControls(){keys={};drag=false;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
 window.addEventListener('blur',releaseControls);
 window.addEventListener('pagehide',releaseControls);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseControls();});
-document.addEventListener('pointerup',e=>{if(e.pointerType==='touch') { /* touch buttons release through their captured pointer */ } });
+// A missed pointer-up must never leave a movement key held.
+function releasePointerControls(){keys.w=keys.a=keys.s=keys.d=keys.shift=false;document.querySelectorAll('[data-sprint]').forEach(b=>b.classList.remove('active'));}
+document.addEventListener('pointerup',releasePointerControls);
+document.addEventListener('pointercancel',releasePointerControls);
+document.addEventListener('contextmenu',releaseControls);
 const forward=new THREE.Vector3(),right=new THREE.Vector3(),move=new THREE.Vector3(),sideMove=new THREE.Vector3(),desiredCamera=new THREE.Vector3(),lookTarget=new THREE.Vector3(),cinemaLook=new THREE.Vector3();
 const cinematicShots=[{p:new THREE.Vector3(0,19,39),l:new THREE.Vector3(0,2,-5)},{p:new THREE.Vector3(20,12,3),l:new THREE.Vector3(0,3,-13)},{p:new THREE.Vector3(-20,10,-1),l:new THREE.Vector3(-7,2,-5)},{p:new THREE.Vector3(0,23,-35),l:new THREE.Vector3(0,2,-7)},{p:new THREE.Vector3(0,13,24),l:new THREE.Vector3(0,2,-13)}];
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key.toLowerCase()==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest=p[0]}});if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:{place:nearest}}))}});
@@ -382,11 +391,12 @@ if(!treeFinale.active){
   f.obj.userData.body.position.y=Math.abs(Math.sin(gait*2))*.035;
  });
  // Cat has its own eased follow movement, turning and walking beside Anto rather than being dragged.
- const ant=friends[0].obj,offset=new THREE.Vector3(-.85,0,.45).applyAxisAngle(new THREE.Vector3(0,1,0),ant.rotation.y);
- const target=ant.position.clone().add(offset),before=antoCat.position.clone();target.y=.02+Math.abs(Math.sin(t*4))*.025;
- const step=target.clone().sub(before);antoCat.position.lerp(target,Math.min(1,dt*3.2));
- if(step.lengthSq()>.00001)antoCat.rotation.y=Math.atan2(step.x,step.z);
- const walking=step.length()>.0015,gait=t*9.5;
+ const ant=friends[0].obj,angle=ant.rotation.y,ox=-.85*Math.cos(angle)+.45*Math.sin(angle),oz=.85*Math.sin(angle)+.45*Math.cos(angle);
+ const targetX=ant.position.x+ox,targetZ=ant.position.z+oz,dx=targetX-antoCat.position.x,dz=targetZ-antoCat.position.z;
+ const stepLengthSq=dx*dx+dz*dz,blend=Math.min(1,dt*3.2);
+ antoCat.position.x+=dx*blend;antoCat.position.z+=dz*blend;antoCat.position.y=.02+Math.abs(Math.sin(t*4))*.025;
+ if(stepLengthSq>.00001)antoCat.rotation.y=Math.atan2(dx,dz);
+ const walking=stepLengthSq>.00000225,gait=t*9.5;
  antoCat.userData.legs.forEach((leg,j)=>leg.rotation.x=walking?Math.sin(gait+(j%2)*Math.PI+(j>1?Math.PI:0))*.52:0);
  antoCat.userData.tail.rotation.z=Math.sin(t*3.5)*.3;
  }
@@ -396,12 +406,28 @@ const gaitSpeed=sprinting?19:13;
 player.userData.legs.forEach((leg,j)=>leg.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI)*(sprinting?.82:.62):0);
 player.userData.arms.forEach((arm,j)=>arm.rotation.x=moving?Math.sin(t*gaitSpeed+j*Math.PI+Math.PI)*(sprinting?.58:.4):0);
 player.userData.body.position.y=moving?Math.abs(Math.sin(t*gaitSpeed*2))*(sprinting?.075:.045):0;
-if(canControl){forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);if(move.lengthSq()>0){move.normalize();const step=move.clone().multiplyScalar(dt*(sprinting?8.6:5.2)),nx=player.position.x+step.x,nz=player.position.z+step.z;const blocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!blocked){player.position.x=THREE.MathUtils.clamp(nx,-31,31);player.position.z=THREE.MathUtils.clamp(nz,-32,27)}else{const xBlocked=solidObstacles.some(o=>Math.abs(nx-o.x)<o.hx+.48&&Math.abs(player.position.z-o.z)<o.hz+.48),zBlocked=solidObstacles.some(o=>Math.abs(player.position.x-o.x)<o.hx+.48&&Math.abs(nz-o.z)<o.hz+.48);if(!xBlocked)player.position.x=THREE.MathUtils.clamp(nx,-31,31);if(!zBlocked)player.position.z=THREE.MathUtils.clamp(nz,-32,27)}player.rotation.y=Math.atan2(move.x,move.z);}}
+if(canControl){
+ forward.set(-Math.sin(yaw),0,-Math.cos(yaw));sideMove.set(Math.cos(yaw),0,-Math.sin(yaw));move.set(0,0,0);
+ if(keys.w||keys.arrowup)move.add(forward);if(keys.s||keys.arrowdown)move.sub(forward);if(keys.a||keys.arrowleft)move.sub(sideMove);if(keys.d||keys.arrowright)move.add(sideMove);
+ if(move.lengthSq()>0){
+  move.normalize();const distance=dt*(sprinting?8.6:5.2),dx=move.x*distance,dz=move.z*distance,px=player.position.x,pz=player.position.z;
+  const blockedAt=(x,z,axis)=>solidObstacles.some(o=>{
+   const insideNow=Math.abs(px-o.x)<o.hx+.48&&Math.abs(pz-o.z)<o.hz+.48;
+   const insideNext=Math.abs(x-o.x)<o.hx+.48&&Math.abs(z-o.z)<o.hz+.48;
+   if(!insideNext)return false;if(!insideNow)return true;
+   const before=axis==='x'?Math.abs(px-o.x):Math.abs(pz-o.z),after=axis==='x'?Math.abs(x-o.x):Math.abs(z-o.z);
+   return after<=before;
+  });
+  const nx=THREE.MathUtils.clamp(px+dx,-31,31),nz=THREE.MathUtils.clamp(pz+dz,-32,27);
+  const tryX=blockedAt(nx,pz,'x')?px:nx,tryZ=blockedAt(tryX,nz,'z')?pz:nz;
+  player.position.set(tryX,0,tryZ);player.rotation.y=Math.atan2(move.x,move.z);
+ }
+}
 if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
 else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
 else{desiredCamera.set(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desiredCamera,1-Math.pow(.001,dt));lookTarget.set(player.position.x,1.5,player.position.z);cameraTarget.lerp(lookTarget,.08);camera.lookAt(cameraTarget)}
 renderer.render(scene,camera);lastRender=now}
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,lowEndDevice?.85:mobileDevice?1.1:1.4))});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,lowEndDevice?.75:mobileDevice?.95:1.2))});
 document.getElementById('sceneLoading').classList.add('done');
