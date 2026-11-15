@@ -176,3 +176,15 @@ body.gift-hunt-active .mobile-pad{bottom:24px}
 .low-end-device #treeFinaleOverlay{background:rgba(2,9,18,.2)}
 .low-end-device .finale-caption{text-shadow:none}
 @media(prefers-reduced-motion:reduce){.low-end-device .story-character,.low-end-device .story-cat,.low-end-device .story-gifts i{animation:none!important}}
+
+/* Post-game festival controls and activity board. */
+#festivalBtn{position:fixed;z-index:12;right:22px;bottom:24px;display:none;align-items:center;gap:10px;padding:12px 16px;border:1px solid rgba(239,211,153,.55);border-radius:14px;background:rgba(8,27,40,.94);color:#f5e8c8;box-shadow:0 8px 30px #020a1244;cursor:pointer;text-align:left}
+#festivalBtn.show{display:flex}
+#festivalBtn>span{font-size:23px;color:#f3d28d}
+#festivalBtn b{font:700 9px 'DM Sans',sans-serif;letter-spacing:.14em}
+#festivalBtn small{display:block;color:#b9cbd0;font:8px 'DM Sans',sans-serif;letter-spacing:.1em;margin-top:3px}
+.festival-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:18px 0}
+.festival-actions .action{margin:0;min-height:44px}
+.festival-note{font-size:11px;color:#c3d1d0;line-height:1.6}
+#snowballGame{display:block;width:100%;height:auto;max-height:280px;border:1px solid rgba(239,211,153,.25);border-radius:12px;touch-action:manipulation}
+@media(max-width:650px){#festivalBtn{right:12px;bottom:14px;padding:10px 12px;gap:8px}#festivalBtn>span{font-size:19px}.festival-actions{grid-template-columns:1fr}.festival-actions .action{min-height:40px}}
