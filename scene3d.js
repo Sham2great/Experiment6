@@ -406,31 +406,32 @@ function character(coatColor,hatColor,scale=1,style={}){
  for(let b=0;b<3;b++)sphere(body,.105,1.34-b*.2,.49,.035,zipper);
  // Keep the face and neckline clean: no beard-shaped collar or facial hair.
  sphere(body,0,1.72,0,.39,skin);
- // Hair is deliberately visible beneath the hat and around both sides of the face.
- // Fuller hair silhouette: a dense scalp, broad fringe and substantial side/back volume.
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.414,18,12,0,Math.PI*2,0,Math.PI*.49),hair);
- hairCap.position.set(0,2.02,-.035);body.add(hairCap);
- // A small, raised fringe frames the forehead without crossing the eyes.
- const fringe=new THREE.Mesh(new THREE.SphereGeometry(.245,14,9),hair);
- fringe.scale.set(1.12,.27,.42);fringe.position.set(0,1.99,.345);body.add(fringe);
+ // Hair follows the head's silhouette instead of forming a separate oversized helmet.
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.397,20,14,0,Math.PI*2,0,Math.PI*.47),hair);
+ hairCap.position.set(0,2.015,-.045);body.add(hairCap);
+ // A slim fringe sits against the forehead and stays clear of the eyes.
+ const fringe=new THREE.Mesh(new THREE.SphereGeometry(.205,16,10),hair);
+ fringe.scale.set(1.18,.23,.34);fringe.position.set(0,1.985,.335);body.add(fringe);
  if(style.hairLong){
-  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.205,.92,6,10),hair);back.position.set(0,1.36,-.29);body.add(back);
+  // Narrow back and side sections hug the head, creating one continuous hairstyle.
+  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.145,.82,6,10),hair);
+  back.position.set(0,1.37,-.285);body.add(back);
   for(const side of [-1,1]){
-   const sideVolume=new THREE.Mesh(new THREE.SphereGeometry(.19,12,9),hair);
-   sideVolume.scale.set(.72,1.45,.78);sideVolume.position.set(side*.355,1.49,.015);body.add(sideVolume);
-   const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.72,6,8),hair);
-   lock.position.set(side*.39,1.38,.17);lock.rotation.z=side*-.06;body.add(lock);
+   const sideVolume=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.58,6,9),hair);
+   sideVolume.position.set(side*.315,1.43,-.005);sideVolume.rotation.z=side*-.035;body.add(sideVolume);
+   const lock=new THREE.Mesh(new THREE.CapsuleGeometry(.082,.55,6,9),hair);
+   lock.position.set(side*.345,1.38,.205);lock.rotation.z=side*-.045;body.add(lock);
   }
  }else{
   for(const side of [-1,1]){
-   const sideburn=new THREE.Mesh(new THREE.CapsuleGeometry(.085,.24,4,8),hair);
-   sideburn.position.set(side*.37,1.64,.105);body.add(sideburn);
+   const sideburn=new THREE.Mesh(new THREE.CapsuleGeometry(.065,.2,5,8),hair);
+   sideburn.position.set(side*.355,1.65,.09);body.add(sideburn);
   }
  }
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
- const cap=new THREE.Mesh(new THREE.SphereGeometry(.43,12,9,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
- cylinder(body,0,1.96,0,.43,.43,.12,fur);sphere(body,0,2.38,-.015,.105,fur);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,10,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);
+ cylinder(body,0,1.96,0,.405,.405,.11,fur);sphere(body,0,2.38,-.015,.105,fur);
  // Rounded scarf wrap and soft hanging end instead of a square neck block.
  const scarfRing=new THREE.Mesh(new THREE.TorusGeometry(.285,.085,8,20),scarf);
  scarfRing.rotation.x=Math.PI/2;scarfRing.position.set(0,1.55,0);body.add(scarfRing);
