@@ -198,9 +198,19 @@ function festiveArch(z){
  return g;
 }
 festiveArch(10);festiveArch(-1);
-function villageClockTower(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,3.4,0,3.3,6.8,3.1,mat(0x66504a));for(const side of [-1,1]){box(g,side*1.7,3.5,0,.16,7,.18,gold);box(g,0,6.8,side*1.58,3.35,.16,.18,cream)}const top=new THREE.Mesh(new THREE.ConeGeometry(2.45,2.4,4),red);top.position.y=8;top.rotation.y=Math.PI/4;g.add(top);const face=new THREE.Mesh(new THREE.CircleGeometry(.82,32),cream);face.position.set(0,5.25,1.62);g.add(face);const ring=new THREE.Mesh(new THREE.TorusGeometry(.84,.08,8,32),gold);ring.position.set(0,5.25,1.66);g.add(ring);const h=box(g,0,5.48,1.78,.055,.43,.035,darkWood);h.rotation.z=-.55;box(g,.16,5.25,1.79,.34,.055,.035,darkWood);return g}
-function villageLookoutTower(x,z){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const side of [-1,1])for(const depth of [-1,1])cylinder(g,side*.95,3.2,depth*.95,.12,.16,6.4,darkWood);for(let y=1.2;y<6;y+=1.35){box(g,0,y,0,2.15,.13,2.15,wood);for(const side of [-1,1])box(g,side*.95,y+.42,0,.12,.8,1.9,gold)}box(g,0,6.3,0,2.7,.28,2.7,darkWood);const roofTop=new THREE.Mesh(new THREE.ConeGeometry(2.15,1.7,4),roof);roofTop.position.y=7.35;roofTop.rotation.y=Math.PI/4;g.add(roofTop);return g}
+function villageClockTower(x,z){solidObstacles.push({x,z,hx:1.9,hz:1.9});const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,3.4,0,3.3,6.8,3.1,mat(0x66504a));for(const side of [-1,1]){box(g,side*1.7,3.5,0,.16,7,.18,gold);box(g,0,6.8,side*1.58,3.35,.16,.18,cream)}const top=new THREE.Mesh(new THREE.ConeGeometry(2.45,2.4,4),red);top.position.y=8;top.rotation.y=Math.PI/4;g.add(top);const face=new THREE.Mesh(new THREE.CircleGeometry(.82,32),cream);face.position.set(0,5.25,1.62);g.add(face);const ring=new THREE.Mesh(new THREE.TorusGeometry(.84,.08,8,32),gold);ring.position.set(0,5.25,1.66);g.add(ring);const h=box(g,0,5.48,1.78,.055,.43,.035,darkWood);h.rotation.z=-.55;box(g,.16,5.25,1.79,.34,.055,.035,darkWood);return g}
+function villageLookoutTower(x,z){solidObstacles.push({x,z,hx:1.65,hz:1.65});const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const side of [-1,1])for(const depth of [-1,1])cylinder(g,side*.95,3.2,depth*.95,.12,.16,6.4,darkWood);for(let y=1.2;y<6;y+=1.35){box(g,0,y,0,2.15,.13,2.15,wood);for(const side of [-1,1])box(g,side*.95,y+.42,0,.12,.8,1.9,gold)}box(g,0,6.3,0,2.7,.28,2.7,darkWood);const roofTop=new THREE.Mesh(new THREE.ConeGeometry(2.15,1.7,4),roof);roofTop.position.y=7.35;roofTop.rotation.y=Math.PI/4;g.add(roofTop);return g}
 villageClockTower(20,15);villageLookoutTower(-27,-5);
+ // A little village-square snowman can be dressed up in the afterglow activity.
+const villageSnowman=new THREE.Group();villageSnowman.position.set(4,0,-4);scene.add(villageSnowman);
+sphere(villageSnowman,0,.62,0,.62,snowMat);sphere(villageSnowman,0,1.42,0,.43,snowMat);
+for(const x of [-.14,.14])sphere(villageSnowman,x,1.5,.38,.045,darkWood);
+sphere(villageSnowman,0,1.34,.4,.045,red);
+const carrot=cone(villageSnowman,0,1.36,.55,.09,.36,mat(0xe58c42));carrot.rotation.x=Math.PI/2;carrot.visible=false;
+const snowArms=[];for(const side of [-1,1]){const arm=cylinder(villageSnowman,side*.55,1.12,0,.055,.07,.85,wood);arm.rotation.z=side*.95;snowArms.push(arm)}
+const snowHat=box(villageSnowman,0,1.88,0,.72,.14,.68,darkWood);const snowHatTop=box(villageSnowman,0,2.13,0,.43,.42,.42,darkWood);snowHat.visible=false;snowHatTop.visible=false;
+const snowScarf=new THREE.Mesh(new THREE.TorusGeometry(.43,.095,8,20),red);snowScarf.position.y=1.1;villageSnowman.add(snowScarf);snowScarf.visible=false;
+window.decorateSnowman=part=>{if(part==='hat'){snowHat.visible=true;snowHatTop.visible=true}else if(part==='scarf')snowScarf.visible=true;else if(part==='nose')carrot.visible=true;return true};
 function stringLights(a,b,c,d,y){
  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(a,y,c),new THREE.Vector3((a+b)/2,y-2,(c+d)/2),new THREE.Vector3(b,y,d)]);
  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,45,.045,6,false),gold));
@@ -754,7 +764,7 @@ if(!treeFinale.active&&cameraMode!=='santaVisit'){
   const a=t*f.speed+f.phase;let x=f.center.x+Math.cos(a)*f.radius,z=f.center.z+Math.sin(a)*f.radius;
   if(i===1){const skate=t*.34+f.phase;x=28+Math.cos(skate)*4.35;z=-8+Math.sin(skate)*2.35;f.obj.userData.arms[0].rotation.z=-.72;f.obj.userData.arms[1].rotation.z=.72;}
   if(i===0){const cycle=(t+9)%54;if(cycle>17&&cycle<39){const q=cycle<25?(cycle-17)/8:cycle<31?1:1-(cycle-31)/8,sm=q*q*(3-2*q);x=THREE.MathUtils.lerp(x,-19,sm);z=THREE.MathUtils.lerp(z,10.2,sm);f.obj.userData.body.position.x=cycle>24&&cycle<34?.08:0;if(cycle>23&&cycle<36)wildKittens.forEach((k,j)=>{k.visible=true;k.position.set(-19+(j-.5)*.8,.02+Math.abs(Math.sin(t*5+j))*.07,10.8);k.rotation.y=Math.sin(t*1.8+j)*.25;k.userData.legs.forEach((leg,n)=>leg.rotation.x=Math.sin(t*7+j+n*Math.PI)*.2)})}}
-  if(!hitsHouse(x,z,.62)){f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=-a}
+  if(!hitsHouse(x,z,.62)){f.obj.position.set(x,Math.abs(Math.sin(t*f.speed*f.radius*5+i))*.035,z);f.obj.rotation.y=i===1?Math.atan2(-Math.sin(t*.34+f.phase),Math.cos(t*.34+f.phase)):(i===0&&((t+9)%54)>17&&((t+9)%54)<39?Math.atan2(-19-x,10.2-z):-a)}
   const gait=t*f.speed*f.radius*5+i;
   f.obj.userData.legs.forEach((leg,j)=>leg.rotation.x=i===1?Math.sin(t*4+j*Math.PI)*.18:Math.sin(gait+j*Math.PI)*.58);
   f.obj.userData.arms.forEach((arm,j)=>arm.rotation.x=Math.sin(gait+j*Math.PI+Math.PI)*.34);
