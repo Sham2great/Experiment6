@@ -295,7 +295,7 @@ function beginTreeFinale(){if(treeFinale.active||treeFinale.done)return;releaseC
 const treeFinale={active:false,done:false,started:0,star:null,light:null,glow:null,particles:[],lastCaption:-1};
 const finaleOverlay=document.createElement('div');finaleOverlay.id='treeFinaleOverlay';finaleOverlay.innerHTML='<div class="finale-vignette"></div><div class="finale-caption"><div class="finale-kicker">A CHRISTMAS PROMISE</div><h2 class="finale-title">One last little wonder…</h2><p class="finale-copy">The village is waiting for its brightest star.</p><div class="finale-rule"><i></i> ✦ <i></i></div></div><div class="finale-bottom">TWAIN’S CHRISTMAS · A MOMENT TO REMEMBER</div>';document.body.appendChild(finaleOverlay);
 function makeFinaleStar(){const shape=new THREE.Shape();for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,r=i%2===0?.58:.26,x=Math.cos(a)*r,y=Math.sin(a)*r;if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y)}shape.closePath();const geo=new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.045,bevelThickness:.035});const material=new THREE.MeshStandardMaterial({color:0xffdf8a,emissive:0xffb52e,emissiveIntensity:1.2,metalness:.35,roughness:.22});const star=new THREE.Mesh(geo,material);star.rotation.y=Math.PI;star.scale.setScalar(.85);scene.add(star);return star}
-function finaleCaption(kicker,title,copy){const ui=document.getElementById('treeFinaleOverlay');if(!ui)return;ui.classList.remove('caption-in');void ui.offsetWidth;ui.querySelector('.finale-kicker').textContent=kicker;ui.querySelector('.finale-title').textContent=title;ui.querySelector('.finale-copy').textContent=copy;ui.classList.add('caption-in')}
+let finaleCaptionTimer=0;function finaleCaption(kicker,title,copy,duration=4600){const ui=document.getElementById('treeFinaleOverlay');if(!ui)return;clearTimeout(finaleCaptionTimer);ui.classList.remove('caption-in');void ui.offsetWidth;ui.querySelector('.finale-kicker').textContent=kicker;ui.querySelector('.finale-title').textContent=title;ui.querySelector('.finale-copy').textContent=copy;ui.classList.add('caption-in');if(duration>0)finaleCaptionTimer=setTimeout(()=>ui.classList.remove('caption-in'),duration)}
 const finaleLadders=[];
 const finaleParticleGeometry=new THREE.SphereGeometry(.035,5,5);
 const maxFinaleParticles=lowEndDevice?18:45;
@@ -462,7 +462,7 @@ function updateTreeFinale(now,dt){
  }
 }
 let snowflakesFound=0;
-const santaVisit={active:false,done:false,start:0,group:null,santa:null,reindeer:[],bells:[],lastCaption:-1,sack:null,sackBody:null,sackNeck:null,sackTie:null,sham:null,gifts:[],crowdStarts:[],crowdTargets:[]};
+const santaVisit={active:false,done:false,start:0,group:null,santa:null,reindeer:[],bells:[],lastCaption:-1,sack:null,sackBody:null,sackNeck:null,sackTie:null,sham:null,gifts:[],giftCaptionsShown:[],crowdStarts:[],crowdTargets:[]};
 function buildSantaVisit(){
  const sleigh=new THREE.Group(),sleighRed=mat(0x9d303b),trim=mat(0xf0d18b,.35,.35),runner=mat(0x4a302b);
  // Curved runners, sleigh body and gold-trimmed side panels.
@@ -487,7 +487,7 @@ function buildSantaVisit(){
  const sackNeck=cylinder(giftSack,0,1.08,0,.34,.38,.24,sackCloth);
  const sackTie=new THREE.Mesh(new THREE.TorusGeometry(.34,.05,7,20),sackTrim);sackTie.rotation.x=Math.PI/2;sackTie.position.y=1.19;giftSack.add(sackTie);
  sphere(giftSack,0,1.22,0,.1,sackTrim);
- const sham=character(0x315c71,0x8f4149,.82,{name:'SHAM',gender:'female',hair:0x342a28,hairStyle:'twists',hairLong:true,hat:false,outfit:'longcoat',trim:0x20394a,scarf:0xe5c98f});
+ const sham=character(0x315c71,0x8f4149,.82,{name:'SHAM',gender:'female',hair:0x342a28,hairStyle:'afro',hat:false,outfit:'longcoat',trim:0x20394a,scarf:0xe5c98f,accessory:'star-clip'});
  sham.position.set(0,-.45,0);sham.scale.setScalar(.001);giftSack.add(sham);
  giftSack.position.set(0,.78,-1.2);sleigh.add(giftSack);santaVisit.sack=giftSack;santaVisit.sackBody=sackBody;santaVisit.sackNeck=sackNeck;santaVisit.sackTie=sackTie;santaVisit.sham=sham;
  // Reindeer line up in front of the sleigh, each with antlers and a glowing nose.
@@ -518,7 +518,7 @@ function beginSantaVisit(){
  const crowd=[player,...friends.map(f=>f.obj)];
  santaVisit.crowdStarts=crowd.map(ch=>ch.position.clone());
  santaVisit.crowdTargets=[new THREE.Vector3(-6.8,0,-3.8),new THREE.Vector3(-3.35,0,-4.8),new THREE.Vector3(0,0,-3.5),new THREE.Vector3(3.35,0,-4.8),new THREE.Vector3(6.8,0,-3.8)];
- cameraMode='santaVisit';document.body.classList.add('santa-visit-active');
+ santaVisit.giftCaptionsShown=[];if(santaVisit.sham)santaVisit.sham.hiddenForGifts=false;cameraMode='santaVisit';document.body.classList.add('santa-visit-active');
  const ui=document.getElementById('treeFinaleOverlay');
  if(ui){ui.classList.add('show');finaleCaption('A MAGICAL SURPRISE','Look up…','Someone special is on their way to the village!')}
  window.dispatchEvent(new CustomEvent('winter-santa-started'));
@@ -572,7 +572,9 @@ function updateSantaVisit(now,dt){
   santaVisit.sham.userData.legs.forEach((leg,j)=>leg.rotation.x=walking?Math.sin(e*7+j*Math.PI)*.34:0);
   santaVisit.sham.userData.arms.forEach((arm,j)=>arm.rotation.x=walking?Math.sin(e*7+j*Math.PI)*.22:0);
  }
- if(e>17.5&&santaVisit.lastCaption!==2){finaleCaption('SURPRISE!','IT’S SHAM!','Sham has climbed out of Santa’s sack!');santaVisit.lastCaption=2}
+ if(e>17.5&&santaVisit.lastCaption!==2){finaleCaption('SURPRISE!','IT’S SHAM!','Sham has climbed out of Santa’s sack!',4300);santaVisit.lastCaption=2}
+ // Sham gets a moment in the spotlight, then exits the square before the gifts begin.
+ if(e>=27.5&&!santaVisit.sham.hiddenForGifts){santaVisit.sham.visible=false;santaVisit.sham.hiddenForGifts=true}
  // The kittens trot over to Anto while everyone watches.
  const kittenReveal=smooth(clamp((e-23)/5,0,1));
  antoKittens.forEach((kitten,i)=>{
@@ -599,7 +601,7 @@ function updateSantaVisit(now,dt){
   gift.visible=e>=begin;gift.position.copy(giftStart.lerp(holdPoint,handoff));
   gift.rotation.set(0,recipient.rotation.y+Math.sin(e*1.2+i)*.012,0);
   if(i!==1&&e>=begin+4.05&&e<begin+4.8)recipient.userData.body.position.y=.08;
-  if(e>=begin&&e<begin+.7&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'A little Christmas present…':'Something special for you…',i===1?'Anto, you have made this village brighter. Merry Christmas!':'Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
+  if(e>=begin&&!santaVisit.giftCaptionsShown[i]){const captions=[['A GIFT FOR TWAIN','A little thank-you','For bringing everyone together this Christmas.'],['A GIFT FOR ANTO','For the heart of this village','Your kindness makes this place feel like home. Merry Christmas, Anto.'],['A GIFT FOR VIV','A little something for you','May your winter be as bright as your smile.'],['A GIFT FOR TASS','A little surprise','For all the joy and wonder you bring.'],['A GIFT FOR JORDAN','Something special','Wishing you a warm and wonderful Christmas.']];const [kicker,title,copy]=captions[i];finaleCaption(kicker,title,copy,i===1?5600:4100);santaVisit.giftCaptionsShown[i]=true;santaVisit.lastCaption=3+i}
  });
  if(e>=64){camPos=new THREE.Vector3(13.5,10.5,1.5);look=new THREE.Vector3(0,1.5,-6);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
  camera.position.lerp(camPos,Math.min(1,dt*1.15));camera.lookAt(look);
@@ -670,6 +672,12 @@ function character(coatColor,hatColor,scale=1,style={}){
   for(let i=0;i<7;i++){const a=i*2.399,curl=sphere(body,Math.cos(a)*.2,2.12+(i%2)*.035,Math.sin(a)*.2-.02,.075,hair);curl.scale.set(1,.8,1)}
   const fringe=new THREE.Mesh(new THREE.SphereGeometry(.19,14,9),hair);fringe.scale.set(1.15,.16,.3);fringe.position.set(0,1.99,.33);body.add(fringe);
  }
+ // Small personal accessories make the named villagers readable as different people.
+ if(style.accessory==='star-clip'){const clip=new THREE.Mesh(new THREE.OctahedronGeometry(.105,0),mat(0xf2cb70));clip.position.set(.31,1.98,.31);clip.scale.set(1,.72,.35);body.add(clip)}
+ else if(style.accessory==='flower-pin'){for(let p=0;p<5;p++){const a=p*Math.PI*2/5,petal=sphere(body,.32+Math.cos(a)*.075,1.91+Math.sin(a)*.075,.34,.052,mat(0xf0c77d));petal.scale.set(1,.8,.55)}sphere(body,.32,1.91,.39,.045,mat(0x9b5147))}
+ else if(style.accessory==='earmuffs'){for(const side of [-1,1])sphere(body,side*.385,1.82,.015,.13,mat(0xc45b61));const band=new THREE.Mesh(new THREE.TorusGeometry(.37,.035,6,18,Math.PI),mat(0xe8c98c));band.position.set(0,1.98,0);band.rotation.z=Math.PI;body.add(band)}
+ else if(style.accessory==='headband'){const band=new THREE.Mesh(new THREE.TorusGeometry(.35,.035,6,22),mat(0xb34c52));band.position.set(0,1.99,-.015);band.rotation.x=Math.PI/2;body.add(band);sphere(body,0,2.08,.27,.085,mat(0xe8c98c))}
+ else if(style.accessory==='glasses'){for(const side of [-1,1]){const lens=new THREE.Mesh(new THREE.TorusGeometry(.105,.022,6,14),mat(0xe5c98c,.5,.3));lens.position.set(side*.125,1.79,.385);body.add(lens)}box(body,0,1.79,.39,.12,.025,.025,mat(0xe5c98c))}
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
  if(style.hat!==false){const brim=cylinder(body,0,2.36,0,.435,.435,.13,fur);brim.scale.set(1.02,1,1.02);const cap=new THREE.Mesh(new THREE.SphereGeometry(.425,18,12,0,Math.PI*2,0,Math.PI*.56),hat);cap.position.set(0,2.43,-.015);cap.scale.set(1.02,1,1.02);body.add(cap);sphere(body,0,2.82,-.025,.105,fur);}
@@ -697,12 +705,12 @@ function character(coatColor,hatColor,scale=1,style={}){
  if(style.name)root.add(nameTag(style.name));
  root.userData.body=body;root.userData.legs=legs;root.userData.arms=arms;root.scale.setScalar(scale);return root;
 }
-const player=character(0x315c71,0x8f4149,.88,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'afro',hat:true,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
+const player=character(0x315c71,0x8f4149,.88,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'afro',hat:true,scarf:0xe5c98f,accessory:'star-clip'});player.position.set(0,0,12);scene.add(player);
 const friends=[
- {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xf0c77d,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
- {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,outfit:'knit',trim:0xe5d3a9,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
- {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hat:false,outfit:'cape',scarf:0xe6d3a1}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
- {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',hat:false,outfit:'hoodie',trim:0xe0c58b,scarf:0xe0c58b}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
+ {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xf0c77d,scarf:0xe8c98c,accessory:'flower-pin'}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
+ {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,outfit:'knit',trim:0xe5d3a9,scarf:0xd9b4a0,accessory:'earmuffs'}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
+ {obj:character(0x78608c,0xb47a38,.75,{name:'TASS',gender:'female',hair:0x8b5836,hairStyle:'braids',hat:false,outfit:'cape',scarf:0xe6d3a1,accessory:'headband'}),center:new THREE.Vector3(-16,0,-13),radius:1.6,speed:.38,phase:4},
+ {obj:character(0x3f7185,0x9a5547,.78,{name:'JORDAN',gender:'male',hair:0x382b24,hairStyle:'short',hat:false,outfit:'hoodie',trim:0xe0c58b,scarf:0xe0c58b,accessory:'glasses'}),center:new THREE.Vector3(9,0,-20),radius:1.35,speed:.27,phase:1.2}
 ];
 friends.forEach(f=>scene.add(f.obj));
 const townsfolk=[
