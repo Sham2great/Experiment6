@@ -471,8 +471,8 @@ function updateSantaVisit(now,dt){
   ch.userData.body.position.y=0;
  });
  // A close establishing shot of Santa, then a wide shot as the whole village gathers.
- const closePos=new THREE.Vector3(1.5,4.0,-11.8),closeLook=new THREE.Vector3(0,2.0,-18.2);
- const widePos=new THREE.Vector3(0,9.2,-5.4),wideLook=new THREE.Vector3(0,1.5,-14.1);
+ const closePos=new THREE.Vector3(5.8,4.2,-15.8),closeLook=new THREE.Vector3(0,2.0,-18.2);
+ const widePos=new THREE.Vector3(8.5,9.2,-16.2),wideLook=new THREE.Vector3(0,1.5,-14.1);
  let camPos=closePos,look=closeLook;
  if(e>=9&&e<14){camPos=widePos;look=wideLook}
  // Sham's surprise remains part of Santa's arrival, revealed in a close-up.
@@ -505,7 +505,7 @@ function updateSantaVisit(now,dt){
   if(e>finish&&e<finish+.3){gift.position.copy(to);recipient.userData.arms.forEach(arm=>arm.rotation.set(0,0,0))}
  });
  // Final group portrait: all five villagers, Santa, sleigh and kittens in one frame.
- if(e>=28){camPos=new THREE.Vector3(0,10.5,-3.2);look=new THREE.Vector3(0,1.6,-14.4);if(santaVisit.lastCaption!==5){finaleCaption('A VERY MERRY CHRISTMAS','Presents for Twain and Anto!','Santa made sure everyone who helped save Christmas got a little magic.');santaVisit.lastCaption=5}}
+ if(e>=28){camPos=new THREE.Vector3(9.5,10.5,-16.5);look=new THREE.Vector3(0,1.6,-14.4);if(santaVisit.lastCaption!==5){finaleCaption('A VERY MERRY CHRISTMAS','Presents for Twain and Anto!','Santa made sure everyone who helped save Christmas got a little magic.');santaVisit.lastCaption=5}}
  camera.position.lerp(camPos,Math.min(1,dt*2.2));camera.lookAt(look);
  if(e>34){santaVisit.active=false;santaVisit.done=true;cameraMode='follow';document.body.classList.remove('santa-visit-active');const ui=document.getElementById('treeFinaleOverlay');ui?.classList.remove('show','caption-in');document.getElementById('sceneHint').textContent='SANTA HAS VISITED THE VILLAGE ✦ MERRY CHRISTMAS!';window.dispatchEvent(new CustomEvent('winter-santa-visit-complete'))}
 }
