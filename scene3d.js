@@ -651,7 +651,6 @@ function character(coatColor,hatColor,scale=1,style={}){
   const afro=new THREE.Mesh(new THREE.SphereGeometry(.455,32,24),hair);afro.scale.set(1.08,1.02,.94);afro.position.set(0,2.02,-.17);body.add(afro);
   for(const side of [-1,1]){const puff=sphere(body,side*.34,1.72,-.12,.2,hair);puff.scale.set(.95,1.08,.9)}
  }else if(hairStyle==='bob'){
-  const back=new THREE.Mesh(new THREE.SphereGeometry(.39,22,16),hair);back.scale.set(1.05,1.16,.95);back.position.set(0,1.72,-.17);body.add(back);
   for(const side of [-1,1]){addLock(side*.34,1.53,.04,.12,.48,side*-.06);sphere(body,side*.34,1.3,.05,.12,hair)}
   const fringe=sphere(body,0,2.015,.285,.2,hair);fringe.scale.set(1.28,.38,.58);
  }else if(hairStyle==='curls'){
@@ -832,7 +831,7 @@ function start3DMinigame(mode){
   document.getElementById('sceneHint').textContent='SLED RACE • A/D OR ←/→ STEER • SPACE TO JUMP • COLLECT STARS';
  }else{
   player.position.set(0,0,15);player.rotation.y=Math.PI;
-  const floor=new THREE.Mesh(new THREE.CircleGeometry(15,48),mat(0x8daeb2));floor.rotation.x=-Math.PI/2;floor.position.set(0,.025,-5);miniGame.group.add(floor);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(22,48),mat(0x8daeb2));floor.rotation.x=-Math.PI/2;floor.position.set(0,.025,-5);miniGame.group.add(floor);
   for(let i=0;i<8;i++){
    const x=(i%4-1.5)*3.5,z=-5-Math.floor(i/4)*8;
    const stand=cylinder(miniGame.group,x,.8,z,.19,.25,1.6,wood);
