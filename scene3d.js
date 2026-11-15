@@ -835,7 +835,7 @@ function start3DMinigame(mode){
   for(let i=0;i<8;i++){
    const x=(i%4-1.5)*3.5,z=-5-Math.floor(i/4)*8;
    const stand=cylinder(miniGame.group,x,.8,z,.19,.25,1.6,wood);
-   const target=new THREE.Group();target.position.set(x,1.9,z);
+   const target=new THREE.Group();target.position.set(x,1.9,z);target.userData.baseX=x;
    const outer=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.16,24),mat(0xf3e9d2));outer.rotation.x=Math.PI/2;target.add(outer);
    const ring=new THREE.Mesh(new THREE.TorusGeometry(.5,.1,8,24),red);ring.position.z=.1;target.add(ring);
    const bull=sphere(target,0,0,.16,.22,gold);bull.userData.hitTarget=true;
@@ -862,7 +862,7 @@ function updateMiniGame(now,dt,t){
   miniGame.playerX=THREE.MathUtils.clamp(miniGame.playerX+steer*dt*8,-5.1,5.1);
   if(keys[' ']&&miniGame.jump<=.02)miniGame.jumpVelocity=5.8;
   miniGame.jumpVelocity-=17*dt;miniGame.jump=Math.max(0,miniGame.jump+miniGame.jumpVelocity*dt);if(miniGame.jump===0)miniGame.jumpVelocity=0;
-  miniGame.playerZ-=dt*8.4;player.position.set(miniGame.playerX,miniGame.jump,miniGame.playerZ);player.rotation.y=Math.PI+steer*.12;
+  miniGame.playerZ-=dt*3.6;player.position.set(miniGame.playerX,miniGame.jump,miniGame.playerZ);player.rotation.y=Math.PI+steer*.12;
   miniGame.sled.position.set(miniGame.playerX,miniGame.jump*.55,miniGame.playerZ+.25);
   miniGame.obstacles.forEach(o=>{if(o.mesh.userData.passed)return;if(o.type==='star'&&Math.abs(o.z-miniGame.playerZ)<.9&&Math.abs(o.x-miniGame.playerX)<1){o.mesh.visible=false;o.mesh.userData.passed=true;miniGame.score++;miniStatus('Golden star collected!');}
    else if(o.type==='tree'&&Math.abs(o.z-miniGame.playerZ)<.8&&Math.abs(o.x-miniGame.playerX)<1.15&&miniGame.jump<.65){o.mesh.userData.passed=true;miniGame.crashes++;miniGame.playerZ+=.8;miniStatus('You clipped a tree!');}
@@ -874,7 +874,7 @@ function updateMiniGame(now,dt,t){
   player.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*15+i*Math.PI)*.18);
   if(miniGame.elapsed>=35){endMiniGame('Time is up!');return}
  }else{
-  miniGame.targets.forEach((target,i)=>{target.position.y=1.9+Math.sin(t*2.3+i)*.24;target.rotation.y=Math.sin(t*1.4+i)*.18});
+  miniGame.targets.forEach((target,i)=>{target.position.x=target.userData.baseX+Math.sin(t*1.35+i)*.62;target.position.y=1.9+Math.sin(t*2.3+i)*.24;target.rotation.y=Math.sin(t*1.4+i)*.18});
   for(let i=miniGame.projectiles.length-1;i>=0;i--){const p=miniGame.projectiles[i];p.velocity.y-=8*dt;p.mesh.position.addScaledVector(p.velocity,dt);p.life-=dt;let hit=-1;
    miniGame.targets.forEach((target,j)=>{if(target.visible&&p.mesh.position.distanceTo(target.position.clone().add(new THREE.Vector3(0,0,.15)))<.82)hit=j});
    if(hit>=0){miniGame.targets[hit].visible=false;miniGame.score++;miniGame.group.remove(p.mesh);miniGame.projectiles.splice(i,1);miniStatus('Bullseye!');continue}
