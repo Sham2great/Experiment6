@@ -1,5 +1,6 @@
 (() => {
 const $=id=>document.getElementById(id);
+const placeName=value=>String(value||'FRIEND').toLowerCase().replace(/^./,c=>c.toUpperCase());
 const pad=n=>String(n).padStart(2,'0');
 // Keep the opening story lightweight on entry-level devices.
 const lowEndDevice=(navigator.deviceMemory>0&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4)||!!navigator.connection?.saveData;
@@ -46,6 +47,7 @@ function closeModal(){backdrop.classList.remove('open')}
 window.addEventListener('world-interact',e=>{
  const place=e.detail?.place;
  if(place==='tree'){window.openTreeStudio?.();return}
+ if(place==='npc'){const stories={ANTO:'Thank you for bringing the presents home, Twain. The village feels like Christmas again. Have you met my little cat? He follows me everywhere.',ELI:'I have been helping the workshop prepare for the festival. Try the snowball challenge when you get a chance!',MILA:'I tucked a little surprise somewhere in the snow. Keep your eyes open — the prettiest things are easy to miss.',NOAH:'The frozen pond is beautiful tonight. I wish we could stay out here all winter.',LUNA:'I love seeing everyone decorate the wishing tree. Every ornament feels like a little memory.',THEO:'Pip told me there are eight magical snowflakes hidden around the village. I wonder who will find them all.',IVY:'The best part of Christmas is making memories with people you care about. I hope you make lots here.'};const box=document.getElementById('modalContent'),back=document.getElementById('modalBackdrop');box.innerHTML='<div class="modal-kicker">A LITTLE VILLAGE CONVERSATION</div><h2>'+placeName(e.detail?.name)+'</h2><p>'+stories[e.detail?.name]+'</p><p>✦ Press E when you are near someone to say hello.</p>';back.classList.add('open');return}
  if(place==='cabin')openModal('<div class="modal-kicker">THE LITTLE CABIN</div><h2>Come in, get cozy.</h2><p>The fire is crackling, the cocoa is warm, and the snow is falling softly outside. Take a moment to rest before exploring again.</p><p>✦ You found a little pocket of Christmas warmth.</p><button class="action" id="cocoa">Make a little wish</button>');
  if(place==='workshop')openModal('<div class="modal-kicker">THE NORTH POLE WORKSHOP</div><h2>Elf training begins!</h2><p>Catch the falling presents before they hit the snow. Move your sleigh with your finger or mouse.</p><div class="game-area"><canvas id="game" width="420" height="260"></canvas></div><p id="scoreline">Gifts caught: 0 · 20 seconds</p><button class="action" id="startGame">Start game</button>');
 });
@@ -199,4 +201,37 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
  };
  story.querySelector('.story-skip').addEventListener('click',finish);
  show(0);
+})();
+/* Post-finale village festival: a second collectible quest and a replayable snowball challenge. */
+(()=>{
+ let flakes=0;
+ const festival=document.createElement('button');
+ festival.id='festivalBtn';festival.innerHTML='<span>✦</span><b>VILLAGE FESTIVAL</b><small>8 SNOWFLAKES · 0/8</small>';
+ festival.setAttribute('aria-label','Open village festival activities');
+ document.body.appendChild(festival);
+ const open=(html)=>{const c=document.getElementById('modalContent'),b=document.getElementById('modalBackdrop');c.innerHTML=html;b.classList.add('open')};
+ const menu=()=>open('<div class="modal-kicker">THE CHRISTMAS CELEBRATION CONTINUES</div><h2>The village <em>festival.</em></h2><p>The presents are home and the wishing tree is shining. There is still so much to discover.</p><div class="journal-progress"><span>MAGICAL SNOWFLAKES</span><b>'+flakes+' / 8</b><div><i style="width:'+(flakes/8*100)+'%"></i></div></div><div class="festival-actions"><button class="action" data-festival="snowball">☃ Snowball target challenge</button><button class="action" data-festival="workshop">🎁 Replay the toy workshop</button><button class="action" data-festival="tree">✦ Decorate the wishing tree</button><button class="action" data-festival="postcard">❄ Make another holiday postcard</button><button class="action" data-festival="pip">🐾 Talk to Pip</button></div><p class="festival-note">Explore the whole village, meet the residents with E, and find all eight glowing snowflakes.</p>');
+ festival.addEventListener('click',menu);
+ window.addEventListener('winter-festival-unlocked',()=>festival.classList.add('show'));
+ window.addEventListener('winter-snowflake-found',e=>{flakes=Math.min(8,Number(e.detail?.count)||flakes+1);festival.querySelector('small').textContent='8 SNOWFLAKES · '+flakes+'/8';});
+ window.addEventListener('winter-snowflake-complete',()=>{festival.querySelector('small').textContent='SNOWFLAKE HUNT COMPLETE ✦';});
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-festival]');if(!b)return;
+  const action=b.dataset.festival;
+  if(action==='workshop'){document.querySelector('[data-place="workshop"]')?.click();return}
+  if(action==='tree'){document.querySelector('[data-place="tree"]')?.click();return}
+  if(action==='postcard'){document.getElementById('postcardBtn')?.click();return}
+  if(action==='pip'){document.getElementById('winterCompanion')?.click();document.getElementById('closeModal')?.click();return}
+  if(action==='snowball')startSnowball();
+ });
+ function startSnowball(){
+  open('<div class="modal-kicker">VILLAGE FESTIVAL · SKILL CHALLENGE</div><h2>Snowball <em>target toss.</em></h2><p>Tap the moving golden targets before the 30 seconds run out. How many can you hit?</p><canvas id="snowballGame" width="520" height="280" aria-label="Snowball target game"></canvas><p id="snowballScore">Hits: 0 · Time: 30</p><button class="action" id="snowballStart">Start challenge</button>');
+  const c=document.getElementById('snowballGame'),ctx=c.getContext('2d'),scoreLine=document.getElementById('snowballScore'),start=document.getElementById('snowballStart');
+  let active=false,score=0,left=30,last=0,raf=0,target={x:260,y:120,r:25,dx:2.2,dy:1.5};
+  const draw=()=>{ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#102b3a';ctx.fillRect(0,0,c.width,c.height);for(let i=0;i<38;i++){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect((i*83)%520,(i*47)%280,2,2)}ctx.beginPath();ctx.arc(target.x,target.y,target.r,0,Math.PI*2);ctx.fillStyle='#e8c77d';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#fff0c5';ctx.stroke();ctx.font='25px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',target.x,target.y)};
+  draw();
+  c.onclick=e=>{if(!active)return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*c.width,y=(e.clientY-r.top)/r.height*c.height;if(Math.hypot(x-target.x,y-target.y)<target.r+8){score++;target.r=Math.max(15,25-score*.35);target.x=35+Math.random()*(c.width-70);target.y=35+Math.random()*(c.height-70);target.dx=(Math.random()>.5?1:-1)*(1.6+Math.random()*2.2);target.dy=(Math.random()>.5?1:-1)*(1.2+Math.random()*2)}};
+  function frame(t){if(!active)return;const dt=last?Math.min((t-last)/1000,.05):0;last=t;left=Math.max(0,left-dt);target.x+=target.dx*dt*60;target.y+=target.dy*dt*60;if(target.x<target.r||target.x>c.width-target.r)target.dx*=-1;if(target.y<target.r||target.y>c.height-target.r)target.dy*=-1;draw();scoreLine.textContent='Hits: '+score+' · Time: '+Math.ceil(left);if(left<=0){active=false;scoreLine.textContent='Time! You hit '+score+' targets. '+(score>=15?'Festival champion!':'Give it another try!');start.textContent='Play again';return}raf=requestAnimationFrame(frame)}
+  start.onclick=()=>{cancelAnimationFrame(raf);active=true;score=0;left=30;last=0;target={x:260,y:120,r:25,dx:2.2,dy:1.5};start.textContent='Challenge running…';frame(performance.now())};
+ }
 })();
