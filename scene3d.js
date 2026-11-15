@@ -347,8 +347,8 @@ function updateTreeFinale(now,dt){
  const climb=smooth(clamp((e-29.5)/8.2,0,1));
  chars.forEach((ch,i)=>{
   if(e<29.5){ch.position.copy(ladderSpots[i]);}
-  else if(e<38.2)ch.position.set(ladderSpots[i].x,.12+climb*4.75,baseZ-.12-climb*.75);
-  else{const down=smooth(clamp((e-38.2)/4.2,0,1));ch.position.set(ladderSpots[i].x,4.87*(1-down),THREE.MathUtils.lerp(baseZ-.87,baseZ+.35,down));}
+  else if(e<38.2)ch.position.set(ladderSpots[i].x,.12+climb*4.75,baseZ+.35);
+  else{const down=smooth(clamp((e-38.2)/4.2,0,1));ch.position.set(ladderSpots[i].x,4.87*(1-down),baseZ+.35);}
   // Keep both climbers squarely facing the ladder as they ascend.
   ch.rotation.y=Math.PI;
   const stepping=e>29.5&&e<38.2,gait=e*7.2+i*Math.PI;
