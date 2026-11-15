@@ -586,6 +586,10 @@ function character(coatColor,hatColor,scale=1,style={}){
  }else if(hairStyle==='braids'){
   for(const side of [-1,1]){addLock(side*.3,1.82,-.02,.105,.32,side*-.1);for(let j=0;j<6;j++){const bead=sphere(body,side*(.34+(j%2)*.025),1.55-j*.115,.08,.067,hair);bead.scale.set(.9,1.15,.9)}sphere(body,side*.34,.91,.08,.065,mat(style.hairTie||0xe8c98c))}
   const fringe=new THREE.Mesh(new THREE.SphereGeometry(.21,14,9),hair);fringe.scale.set(1.1,.18,.32);fringe.position.set(0,1.99,.33);body.add(fringe);
+ }else if(hairStyle==='long'){
+  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.78,6,9),hair);back.position.set(0,1.4,-.28);body.add(back);
+  for(const side of [-1,1]){addLock(side*.32,1.46,-.02,.095,.62,side*-.05);addLock(side*.34,1.43,.2,.075,.58,side*-.04)}
+  const fringe=new THREE.Mesh(new THREE.SphereGeometry(.2,14,9),hair);fringe.scale.set(1.1,.17,.3);fringe.position.set(0,1.99,.33);body.add(fringe);
  }else{
   for(const side of [-1,1])addLock(side*.35,1.7,.02,.065,.19,side*-.08);
   for(let i=0;i<7;i++){const a=i*2.399,curl=sphere(body,Math.cos(a)*.2,2.12+(i%2)*.035,Math.sin(a)*.2-.02,.075,hair);curl.scale.set(1,.8,1)}
