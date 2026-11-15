@@ -78,10 +78,10 @@ for(let i=0;i<34;i++){
 }
 function makeTree(x,z,size=1,decorated=false){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,0,.48*size,0,.17*size,.22*size,.95*size,wood);for(let i=0;i<3;i++){const h=(1.55-i*.18)*size;cone(g,0,(.9+i*.47)*size,0,(.86-i*.13)*size,h,i===0?pine:pine2)}if(decorated){sphere(g,0,2.42*size,0,.13*size,gold);for(let i=0;i<13;i++){const a=i*2.4,y=.55+(i%9)*.55;let r=0;for(let k=0;k<3;k++){const h=(1.55-k*.18)*size,cy=(.9+k*.47)*size,base=cy-h/2;if(y>=base&&y<=cy+h/2)r=Math.max(r,(.86-k*.13)*size*(1-(y-base)/h))}sphere(g,Math.cos(a)*(r+.07),y,Math.sin(a)*(r+.07),.055*size,[gold,red,cream][i%3])}}return g}
 const solidObstacles=[];
-function house(x,z,scale=1,kind='cabin'){
- solidObstacles.push({x,z,hx:2.9*scale,hz:2.55*scale});
- const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);
- const wall=kind==='shop'?mat(0x9b5147):wood,trimWood=mat(0x49332e),roofEdge=mat(0xe8eee5);
+function house(x,z,scale=1,kind='cabin',rotation=0){
+ const cs=Math.abs(Math.cos(rotation)),sn=Math.abs(Math.sin(rotation));solidObstacles.push({x,z,hx:(2.9*cs+2.55*sn)*scale,hz:(2.55*cs+2.9*sn)*scale});
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;g.scale.setScalar(scale);scene.add(g);
+ const wall=kind==='shop'?mat(0x9b5147):kind==='blue'?mat(0x496b7c):kind==='green'?mat(0x55745d):wood,trimWood=mat(0x49332e),roofEdge=mat(0xe8eee5);
  box(g,0,1.45,0,5,2.9,4.2,wall);
  const r=new THREE.Mesh(new THREE.ConeGeometry(3.55,2.25,4),roof);r.position.set(0,3.95,0);r.rotation.y=Math.PI/4;r.scale.set(1,.75,.82);g.add(r);
  box(g,0,3.02,0,5.6,.18,4.8,snowMat);
@@ -97,6 +97,7 @@ function house(x,z,scale=1,kind='cabin'){
  }
  box(g,0,.16,2.65,1.35,.22,.72,roofEdge);box(g,0,.29,2.42,1.1,.18,.5,wood);
  const wreath=new THREE.Mesh(new THREE.TorusGeometry(.29,.075,8,20),pine);wreath.position.set(0,2.35,2.3);g.add(wreath);
+ const mistletoe=mat(0x477b50);for(const side of [-1,1]){const leaf=sphere(g,.52+side*.12,2.65,2.3,.13,mistletoe);leaf.scale.set(.62,1.55,.48);leaf.rotation.z=side*.55}for(let j=0;j<3;j++)sphere(g,.52+(j-1)*.07,2.55,2.43,.045,red);
  sphere(g,0,2.35,2.39,.08,red);sphere(g,-.1,2.17,2.4,.07,gold);sphere(g,.1,2.17,2.4,.07,gold);
  const wire=new THREE.CatmullRomCurve3([new THREE.Vector3(-2.45,3.05,2.22),new THREE.Vector3(0,2.82,2.28),new THREE.Vector3(2.45,3.05,2.22)]);
  g.add(new THREE.Mesh(new THREE.TubeGeometry(wire,24,.025,5,false),darkWood));
@@ -111,8 +112,20 @@ function house(x,z,scale=1,kind='cabin'){
  }
  return g;
 }
-house(-12,-5,1.12,'cabin');house(12,-10,.95,'shop');house(20,6,.65,'cabin');house(-22,2,.72,'shop');house(18,-23,.8,'cabin');house(-19,-24,.7,'cabin');
-makeTree(-24,-16,1.4);makeTree(-20,8,1.05);makeTree(23,-19,1.4);makeTree(26,13,1.1);makeTree(-5,-24,1.2);makeTree(6,-27,1.1);
+house(-12,-5,1.12,'cabin',-.16);house(12,-10,.95,'shop',Math.PI*.92);house(20,6,.65,'cabin',-.65);house(-22,2,.72,'shop',.55);house(18,-23,.8,'cabin',Math.PI);house(-19,-24,.7,'cabin',-.3);
+// Extra little homes form lived-in side streets rather than a ring of empty snow.
+house(-30,14,.72,'blue',.48);house(15,27,.8,'green',Math.PI);house(31,8,.7,'cabin',-Math.PI/2);house(-32,-9,.76,'shop',Math.PI/2);house(27,-27,.68,'cabin',2.7);house(-13,30,.68,'green',-.3);house(4,34,.65,'blue',Math.PI);
+makeTree(-34,-22,1.4);makeTree(-36,10,1.05);makeTree(35,-27,1.4);makeTree(38,13,1.1);makeTree(-10,-36,1.2);makeTree(10,-37,1.1);
+
+// Tiny farm details beside the outer cottages: stacked straw bales, twine and a little snow.
+function hayStack(x,z,rotation=0){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);const straw=mat(0xb99a55),twine=mat(0x6f5935);for(let row=0;row<2;row++)for(let i=0;i<2-row;i++){const b=box(g,(i-(1-row)*.5)*.92,.42+row*.78,0,.98,.78,.78,straw);b.rotation.z=(i+row)%2?.035:-.025;for(const side of [-1,1]){const band=box(g,b.position.x+side*.27,b.position.y,.405,.045,.8,.025,twine);band.rotation.z=b.rotation.z}}solidObstacles.push({x,z,hx:1.1,hz:.75});return g}
+hayStack(-27,17,.4);hayStack(19,30,-.5);hayStack(-35,-5,.8);hayStack(29,-24,-.25);
+// A little woodpile, stacked firewood and a hand-painted direction sign make the lanes feel inhabited.
+function woodPile(x,z){for(let i=0;i<5;i++){const log=cylinder(scene,x+(i%2)*.18,.22+Math.floor(i/2)*.25,z+(i%3)*.17,.13,.13,1.25,wood);log.rotation.z=Math.PI/2;log.rotation.y=(i%2)*.16}}
+woodPile(-16,20);woodPile(24,21);
+function directionSign(x,z,rotation=0){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);cylinder(g,0,1.15,0,.075,.09,2.3,darkWood);for(let i=0;i<2;i++){const board=box(g,i===0?.18:-.18,1.75-i*.45,.04,.95,.28,.12,i===0?red:wood);board.rotation.y=i===0?.08:-.08;for(let j=0;j<3;j++)sphere(g,(i===0?-.12:.12)+j*.12,1.75-i*.45,.12,.025,gold)}}
+directionSign(-9,13,-.2);directionSign(10,-19,.5);
+
 const grandTree=makeTree(0,-13,2.25,true);
 
 const treeDecorations=[];
@@ -156,7 +169,7 @@ restoreTree();
 window.openTreeStudio=()=>{releaseControls();document.getElementById('treeStudio').classList.add('open');document.getElementById('treeStudio').setAttribute('aria-hidden','false');cameraMode='treeStudio';yaw=0;pitch=.15;camera.position.set(0,4.6,-4.2);camera.lookAt(0,3,-13);};
 window.closeTreeStudio=()=>{releaseControls();document.getElementById('treeStudio').classList.remove('open');document.getElementById('treeStudio').setAttribute('aria-hidden','true');cameraMode='follow';};
 
-for(let i=0;i<10;i++){const a=i*2.399,r=18+(i%5)*2.2;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
+for(let i=0;i<10;i++){const a=i*2.399,r=34+(i%5)*1.8;makeTree(Math.cos(a)*r,Math.sin(a)*r,.55+(i%4)*.12,i%7===0)}
 // A broad winding packed-snow road with soft darker edges.
 const pathPts=[];for(let i=0;i<=50;i++){const t=i/50;pathPts.push(new THREE.Vector3(-2+Math.sin(t*Math.PI*1.45)*8,.035,18-t*37))}
 const roadCurve=new THREE.CatmullRomCurve3(pathPts);
@@ -175,7 +188,8 @@ roadStrip(4.7,.015,mat(0x879f9b));
 roadStrip(3.9,.035,mat(0xc1d3ce));
 
 function lamp(x,z){cylinder(scene,x,1.85,z,.085,.12,3.7,darkWood);cylinder(scene,x,3.55,z,.16,.2,.22,gold);const glass=new THREE.Mesh(new THREE.BoxGeometry(.48,.58,.48),new THREE.MeshStandardMaterial({color:0xffd99a,emissive:0xffb85d,emissiveIntensity:1.7,transparent:true,opacity:.82}));glass.position.set(x,3.88,z);scene.add(glass);const cap=new THREE.Mesh(new THREE.ConeGeometry(.39,.3,4),darkWood);cap.position.set(x,4.31,z);cap.rotation.y=Math.PI/4;scene.add(cap);const l=new THREE.PointLight(0xffc87e,5.5,10);l.position.set(x,3.85,z);scene.add(l);sphere(scene,x,3.54,z,.12,gold)}
-for(const [x,z] of [[-8,7],[8,5],[-7,-18],[8,-21],[-17,1],[17,0],[-17,-20],[17,-21],[-25,-8],[25,4],[-3,18],[3,-28],[-13,-28],[14,18]])lamp(x,z);
+// Street lamps follow the winding road, alternating sides so the road itself stays clear.
+for(let i=0;i<11;i++){const t=.07+i*.086,p=roadCurve.getPointAt(t),tan=roadCurve.getTangentAt(t),side=new THREE.Vector3(-tan.z,0,tan.x).normalize(),sign=i%2===0?-1:1,offset=side.multiplyScalar(sign*4.15);lamp(p.x+offset.x,p.z+offset.z);}
 
 /* A fuller village square: market huts, festive arches, bunting and layered lights */
 function marketStall(x,z,accent){
@@ -200,7 +214,13 @@ function festiveArch(z){
 festiveArch(10);festiveArch(-1);
 function villageClockTower(x,z){solidObstacles.push({x,z,hx:1.9,hz:1.9});const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);box(g,0,3.4,0,3.3,6.8,3.1,mat(0x66504a));for(const side of [-1,1]){box(g,side*1.7,3.5,0,.16,7,.18,gold);box(g,0,6.8,side*1.58,3.35,.16,.18,cream)}const top=new THREE.Mesh(new THREE.ConeGeometry(2.45,2.4,4),red);top.position.y=8;top.rotation.y=Math.PI/4;g.add(top);const face=new THREE.Mesh(new THREE.CircleGeometry(.82,32),cream);face.position.set(0,5.25,1.62);g.add(face);const ring=new THREE.Mesh(new THREE.TorusGeometry(.84,.08,8,32),gold);ring.position.set(0,5.25,1.66);g.add(ring);const h=box(g,0,5.48,1.78,.055,.43,.035,darkWood);h.rotation.z=-.55;box(g,.16,5.25,1.79,.34,.055,.035,darkWood);return g}
 function villageLookoutTower(x,z){solidObstacles.push({x,z,hx:1.65,hz:1.65});const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const side of [-1,1])for(const depth of [-1,1])cylinder(g,side*.95,3.2,depth*.95,.12,.16,6.4,darkWood);for(let y=1.2;y<6;y+=1.35){box(g,0,y,0,2.15,.13,2.15,wood);for(const side of [-1,1])box(g,side*.95,y+.42,0,.12,.8,1.9,gold)}box(g,0,6.3,0,2.7,.28,2.7,darkWood);const roofTop=new THREE.Mesh(new THREE.ConeGeometry(2.15,1.7,4),roof);roofTop.position.y=7.35;roofTop.rotation.y=Math.PI/4;g.add(roofTop);return g}
-villageClockTower(20,15);villageLookoutTower(-27,-5);
+const clockTower=villageClockTower(35,25),lookoutTower=villageLookoutTower(-36,-24);
+// Warm vertical accents belong on the two landmarks, not scattered over every roof.
+function towerLights(tower,w,h){for(let y=1.1;y<h;y+=.72)for(const side of [-1,1]){const bulb=new THREE.Mesh(new THREE.SphereGeometry(.075,8,7),new THREE.MeshStandardMaterial({color:0xffd58a,emissive:0xffb85c,emissiveIntensity:1.6}));bulb.position.set(side*w,y,w*.92);tower.add(bulb)}}
+towerLights(clockTower,1.72,6.8);towerLights(lookoutTower,.95,6.3);
+// A few evergreens wear their own delicate spiral of warm fairy lights.
+function treeLightSpiral(x,z,size){for(let i=0;i<22;i++){const q=i/21,y=(.48+q*2.05)*size,r=(.78-q*.43)*size,a=q*Math.PI*7;const color=i%4===0?0x8be2c2:0xffd27b;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.052*size,7,6),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.8}));bulb.position.set(x+Math.cos(a)*r,y,z+Math.sin(a)*r);scene.add(bulb)}}
+treeLightSpiral(-34,-22,1.4);treeLightSpiral(35,-27,1.4);treeLightSpiral(38,13,1.1);
  // A little village-square snowman can be dressed up in the afterglow activity.
 const villageSnowman=new THREE.Group();villageSnowman.position.set(4,0,-4);scene.add(villageSnowman);
 sphere(villageSnowman,0,.62,0,.62,snowMat);sphere(villageSnowman,0,1.42,0,.43,snowMat);
@@ -216,7 +236,7 @@ function stringLights(a,b,c,d,y){
  scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve,45,.045,6,false),gold));
  for(let i=0;i<=8;i++){const p=curve.getPoint(i/8);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,8,7),new THREE.MeshStandardMaterial({color:i%2?0xffd88b:0x8be2c2,emissive:i%2?0xffb94f:0x4ac99a,emissiveIntensity:1.7}));bulb.position.copy(p);scene.add(bulb)}
 }
-stringLights(-13,13,5,5,9);stringLights(-13,13,-17,-17,10);stringLights(-20,20,-8,-8,12);
+// No overhead light webs: the main illumination now traces the village road and selected landmarks.
 for(let i=0;i<8;i++){
  const a=i*2.399,r=26+(i%3)*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
  makeTree(x,z,.8+(i%3)*.16,i%3===0);
@@ -618,10 +638,11 @@ function character(coatColor,hatColor,scale=1,style={}){
  sphere(body,0,1.72,0,.39,skin);
  // Distinct silhouettes keep every villager recognizable at a glance.
  const hairStyle=style.hairStyle||(style.hairLong?'long':'short');
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.397,20,14,0,Math.PI*2,0,Math.PI*.47),hair);hairCap.position.set(0,2.015,-.045);body.add(hairCap);
+ const rearHair=new THREE.Mesh(new THREE.SphereGeometry(.405,22,16),hair);rearHair.scale.set(1.02,1.06,.88);rearHair.position.set(0,1.76,-.17);body.add(rearHair);
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.405,24,16,0,Math.PI*2,0,Math.PI*.56),hair);hairCap.position.set(0,2.025,-.045);body.add(hairCap);
  const addLock=(x,y,z,r,len,rz=0)=>{const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,len,5,8),hair);m.position.set(x,y,z);m.rotation.z=rz;body.add(m);return m};
  if(hairStyle==='twists'){
-  for(let i=0;i<18;i++){const a=i/18*Math.PI*2,x=Math.cos(a)*.31,z=Math.sin(a)*.31;addLock(x,1.43,z,.052,.72,Math.sin(a)*.16);sphere(body,x,1.02,z,.055,hair)}
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2,x=Math.cos(a)*.325,z=Math.sin(a)*.325;addLock(x,1.43,z,.056,.76,Math.sin(a)*.16);sphere(body,x,.99,z,.058,hair)}
   for(let i=0;i<7;i++)addLock(-.27+i*.09,1.91,.32,.042,.25,(i-3)*.19);
   for(let i=0;i<4;i++)addLock(-.25+i*.17,1.35,-.31,.052,.78,(i-1.5)*.09);
  }else if(hairStyle==='bob'){
@@ -645,7 +666,7 @@ function character(coatColor,hatColor,scale=1,style={}){
  }
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
- if(style.hat!==false){const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,10,0,Math.PI*2,0,Math.PI*.55),hat);cap.position.set(0,2.02,0);body.add(cap);cylinder(body,0,1.96,0,.405,.405,.11,fur);sphere(body,0,2.38,-.015,.105,fur);}
+ if(style.hat!==false){const brim=cylinder(body,0,2.36,0,.435,.435,.13,fur);brim.scale.set(1.02,1,1.02);const cap=new THREE.Mesh(new THREE.SphereGeometry(.425,18,12,0,Math.PI*2,0,Math.PI*.56),hat);cap.position.set(0,2.43,-.015);cap.scale.set(1.02,1,1.02);body.add(cap);sphere(body,0,2.82,-.025,.105,fur);}
  // Tailored outfit details: no two winter coats have the same silhouette.
  const outfit=style.outfit||'classic';
  if(outfit==='longcoat'){box(body,0,1.06,.44,.62,.88,.13,mat(style.trim||0x283b49));box(body,-.2,.91,.52,.035,.52,.025,zipper);box(body,.2,.91,.52,.035,.52,.025,zipper)}
@@ -670,7 +691,7 @@ function character(coatColor,hatColor,scale=1,style={}){
  if(style.name)root.add(nameTag(style.name));
  root.userData.body=body;root.userData.legs=legs;root.userData.arms=arms;root.scale.setScalar(scale);return root;
 }
-const player=character(0x315c71,0x8f4149,1.05,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'twists',hat:false,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
+const player=character(0x315c71,0x8f4149,.88,{name:'TWAIN',gender:'female',hair:0x342a28,hairStyle:'twists',hat:true,scarf:0xe5c98f});player.position.set(0,0,12);scene.add(player);
 const friends=[
  {obj:character(0x9b5147,0x315c71,.82,{name:'ANTO',gender:'female',hair:0xd5a04f,hairStyle:'bob',hat:false,outfit:'puffer',trim:0xf0c77d,scarf:0xe8c98c}),center:new THREE.Vector3(-7,0,-12),radius:1.65,speed:.34,phase:0},
  {obj:character(0x477a65,0x9b5147,.8,{name:'VIV',gender:'female',hair:0x302923,hairStyle:'curls',hat:false,outfit:'knit',trim:0xe5d3a9,scarf:0xd9b4a0}),center:new THREE.Vector3(16,0,-14),radius:1.55,speed:.3,phase:2},
