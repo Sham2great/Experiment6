@@ -236,27 +236,37 @@ async function sharePostcard(){const c=makeCard();c.toBlob(async blob=>{const fi
   if(action==='tower'){open('<div class="modal-kicker">ABOVE THE ROOFTOPS</div><h2>Two towers, two views.</h2><p>Find the clock tower on the eastern hill and the timber lookout on the western ridge. Press E at each one to discover its story.</p>');return}
   if(action==='snowman'){open('<div class="modal-kicker">A WINTER TRADITION</div><h2>Build a snowman.</h2><p>Choose the finishing touches for the village snowman.</p><div class="festival-actions"><button class="action" data-snowman="hat">🎩 Add a hat</button><button class="action" data-snowman="scarf">🧣 Add a scarf</button><button class="action" data-snowman="nose">🥕 Add a carrot nose</button></div><p id="snowmanProgress">Your snowman is waiting for three little details.</p>');const made=new Set();document.querySelectorAll('[data-snowman]').forEach(b=>b.addEventListener('click',()=>{made.add(b.dataset.snowman);window.decorateSnowman?.(b.dataset.snowman);b.disabled=true;b.textContent='✓ '+b.textContent.slice(3);document.getElementById('snowmanProgress').textContent=made.size===3?'Your snowman is ready for the village square!':(3-made.size)+' finishing touches left.'}));return}
   if(action==='bells'){open('<div class="modal-kicker">THE LAST LITTLE TREASURE HUNT</div><h2>Five golden bells.</h2><p>Santa’s sleigh bells scattered across the village when he landed. Find all five glowing bells and walk close to collect them.</p><p id="bellQuestProgress">0 / 5 bells found. Search the outer paths, pine grove and snowy hills.</p><p>✦ Listen for the little chime when you collect one.</p>');return}
-  if(action==='sled'){startSledDash();return}
-  if(action==='snowball')startSnowball();
+  if(action==='sled'){start3DGame('sled');return}
+  if(action==='snowball'){start3DGame('snowball');return}
  });
- function startSledDash(){
-  open('<div class="modal-kicker">VILLAGE FESTIVAL · TIME TRIAL</div><h2>Sled <em>dash.</em></h2><p>Dodge the pine trees, collect the golden stars and survive for 35 seconds. Use the arrow keys or tap the left and right side of the track.</p><canvas id="sledDashGame" width="520" height="300" aria-label="Sled dash game"></canvas><p id="sledDashScore">Stars: 0 · Crashes: 0 · Time: 35</p><button class="action" id="sledDashStart">Start the race</button>');
-  const c=document.getElementById('sledDashGame'),ctx=c.getContext('2d'),line=document.getElementById('sledDashScore'),start=document.getElementById('sledDashStart');
-  let active=false,score=0,crashes=0,left=35,last=0,spawn=0,raf=0,playerX=260,items=[];
-  const draw=()=>{ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#102b3a';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#183b48';ctx.fillRect(82,0,356,300);ctx.strokeStyle='rgba(242,222,175,.55)';ctx.setLineDash([15,13]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(260,0);ctx.lineTo(260,300);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<35;i++){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect((i*83)%520,(i*47+Math.floor((35-left)*18))%300,2,3)}items.forEach(o=>{if(o.star){ctx.font='24px sans-serif';ctx.textAlign='center';ctx.fillText('✦',o.x,o.y)}else{ctx.fillStyle='#245b49';ctx.beginPath();ctx.moveTo(o.x,o.y-17);ctx.lineTo(o.x-15,o.y+15);ctx.lineTo(o.x+15,o.y+15);ctx.closePath();ctx.fill();ctx.fillStyle='#76523b';ctx.fillRect(o.x-3,o.y+12,6,9)}});ctx.font='32px sans-serif';ctx.textAlign='center';ctx.fillText('🛷',playerX,258)};
-  const move=e=>{if(!active)return;if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')playerX=Math.max(105,playerX-32);if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')playerX=Math.min(415,playerX+32);if(e.key.startsWith('Arrow')||e.key==='a'||e.key==='A'||e.key==='d'||e.key==='D'){e.preventDefault();e.stopPropagation()}};
-  c.onpointerdown=e=>{if(!active)return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*c.width;playerX=Math.max(105,Math.min(415,x))};
-  function frame(now){if(!active)return;const dt=last?Math.min((now-last)/1000,.05):0;last=now;left=Math.max(0,left-dt);spawn+=dt;if(spawn>.72){spawn=0;items.push({x:105+Math.random()*310,y:-25,star:Math.random()<.34})}items.forEach(o=>{o.y+=dt*(150+(35-left)*2);if(Math.abs(o.x-playerX)<24&&Math.abs(o.y-246)<23&&!o.hit){o.hit=true;if(o.star)score++;else crashes++}});items=items.filter(o=>o.y<330&&!o.hit);draw();line.textContent='Stars: '+score+' · Crashes: '+crashes+' · Time: '+Math.ceil(left);if(left<=0||crashes>=3){active=false;document.removeEventListener('keydown',move,true);line.textContent='Finish! '+score+' stars collected. '+(score>=12&&crashes<3?'Sled champion!':'Try another run and beat your score.');start.textContent='Race again';return}raf=requestAnimationFrame(frame)}
-  start.onclick=()=>{cancelAnimationFrame(raf);active=true;score=0;crashes=0;left=35;last=0;spawn=0;playerX=260;items=[];start.textContent='Race in progress…';document.addEventListener('keydown',move,true);frame(performance.now())};
+ function start3DGame(mode){
+  const sled=mode==='sled';
+  open('<div class="modal-kicker">VILLAGE FESTIVAL · 3D CHALLENGE</div><h2>'+(sled?'Sled <em>dash.</em>':'Snowball <em>showdown.</em>')+'</h2><p>'+(sled?'Ride the actual village course. Steer around trees, jump over hazards and collect golden stars before reaching the finish. Use A/D or the arrow keys; Space jumps.':'Face the target range in the village. Tap the wooden bullseyes in the 3D world to throw snowballs. Clear every target before time runs out.')+'</p><p class="festival-note">'+(sled?'35-second time limit · Three crashes end the run':'30-second challenge · Aim with your taps')+'</p><button class="action" id="launch3DGame">ENTER THE 3D CHALLENGE</button>');
+  document.getElementById('launch3DGame').addEventListener('click',()=>{
+   document.getElementById('modalBackdrop').classList.remove('open');
+   let hud=document.getElementById('miniGameHud');if(hud)hud.remove();
+   hud=document.createElement('div');hud.id='miniGameHud';
+   hud.innerHTML='<div class="mini-game-status"><b>'+(sled?'SLED DASH':'SNOWBALL SHOWDOWN')+'</b><span id="miniGameScore">Get ready…</span></div><button id="miniGameExit" aria-label="Exit challenge">×</button>'+(sled?'<div class="mini-game-pad"><button data-mini-control="a">◀</button><button data-mini-control=" ">JUMP</button><button data-mini-control="d">▶</button></div>':'<div class="mini-game-tip">TAP THE TARGETS TO THROW</div>');
+   document.body.appendChild(hud);
+   document.getElementById('miniGameExit').addEventListener('click',()=>window.stop3DMinigame?.());
+   hud.querySelectorAll('[data-mini-control]').forEach(btn=>{
+    const key=btn.dataset.miniControl;
+    btn.addEventListener('pointerdown',e=>{e.preventDefault();window.set3DGameControl?.(key,true);btn.setPointerCapture?.(e.pointerId)});
+    ['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(ev=>btn.addEventListener(ev,()=>window.set3DGameControl?.(key,false)));
+   });
+   window.start3DMinigame?.(mode);
+  });
  }
- function startSnowball(){
-  open('<div class="modal-kicker">VILLAGE FESTIVAL · SKILL CHALLENGE</div><h2>Snowball <em>target toss.</em></h2><p>Tap the moving golden targets before the 30 seconds run out. How many can you hit?</p><canvas id="snowballGame" width="520" height="280" aria-label="Snowball target game"></canvas><p id="snowballScore">Hits: 0 · Time: 30</p><button class="action" id="snowballStart">Start challenge</button>');
-  const c=document.getElementById('snowballGame'),ctx=c.getContext('2d'),scoreLine=document.getElementById('snowballScore'),start=document.getElementById('snowballStart');
-  let active=false,score=0,left=30,last=0,raf=0,target={x:260,y:120,r:25,dx:2.2,dy:1.5};
-  const draw=()=>{ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#102b3a';ctx.fillRect(0,0,c.width,c.height);for(let i=0;i<38;i++){ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect((i*83)%520,(i*47)%280,2,2)}ctx.beginPath();ctx.arc(target.x,target.y,target.r,0,Math.PI*2);ctx.fillStyle='#e8c77d';ctx.fill();ctx.lineWidth=4;ctx.strokeStyle='#fff0c5';ctx.stroke();ctx.font='25px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',target.x,target.y)};
-  draw();
-  c.onclick=e=>{if(!active)return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*c.width,y=(e.clientY-r.top)/r.height*c.height;if(Math.hypot(x-target.x,y-target.y)<target.r+8){score++;target.r=Math.max(15,25-score*.35);target.x=35+Math.random()*(c.width-70);target.y=35+Math.random()*(c.height-70);target.dx=(Math.random()>.5?1:-1)*(1.6+Math.random()*2.2);target.dy=(Math.random()>.5?1:-1)*(1.2+Math.random()*2)}};
-  function frame(t){if(!active)return;const dt=last?Math.min((t-last)/1000,.05):0;last=t;left=Math.max(0,left-dt);target.x+=target.dx*dt*60;target.y+=target.dy*dt*60;if(target.x<target.r||target.x>c.width-target.r)target.dx*=-1;if(target.y<target.r||target.y>c.height-target.r)target.dy*=-1;draw();scoreLine.textContent='Hits: '+score+' · Time: '+Math.ceil(left);if(left<=0){active=false;scoreLine.textContent='Time! You hit '+score+' targets. '+(score>=15?'Festival champion!':'Give it another try!');start.textContent='Play again';return}raf=requestAnimationFrame(frame)}
-  start.onclick=()=>{cancelAnimationFrame(raf);active=true;score=0;left=30;last=0;target={x:260,y:120,r:25,dx:2.2,dy:1.5};start.textContent='Challenge running…';frame(performance.now())};
- }
+ window.addEventListener('winter-minigame-update',e=>{
+  const hud=document.getElementById('miniGameHud'),line=document.getElementById('miniGameScore');if(!hud||!line)return;
+  const d=e.detail||{};line.textContent=d.mode==='sled'?'Stars '+d.score+' · Crashes '+d.crashes+' · '+d.time+'s':'Targets '+d.score+'/8 · '+d.time+'s';
+  if(d.message&&d.message!=='undefined')hud.dataset.message=d.message;
+ });
+ window.addEventListener('winter-minigame-finished',e=>{
+  const hud=document.getElementById('miniGameHud');if(hud)hud.remove();
+  const d=e.detail||{},sled=d.mode==='sled';
+  open('<div class="modal-kicker">CHALLENGE COMPLETE</div><h2>'+(sled?'Sled <em>dash.</em>':'Snowball <em>showdown.</em>')+'</h2><p>'+(d.message||'Nice run!')+'</p><p class="festival-note">'+(sled?'Golden stars collected: '+d.score+' · Crashes: '+d.crashes:'Targets hit: '+d.score+' / 8')+'</p><button class="action" id="retry3DGame">PLAY AGAIN</button><button class="action" id="close3DResult">BACK TO FESTIVAL</button>');
+  document.getElementById('retry3DGame').addEventListener('click',()=>start3DGame(d.mode));
+  document.getElementById('close3DResult').addEventListener('click',()=>document.getElementById('modalBackdrop').classList.remove('open'));
+ });
 })();
