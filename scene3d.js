@@ -800,7 +800,7 @@ const miniGame={mode:null,group:null,obstacles:[],targets:[],projectiles:[],scor
 const miniRaycaster=new THREE.Raycaster(),miniPointer=new THREE.Vector2();
 function miniStatus(message){window.dispatchEvent(new CustomEvent('winter-minigame-update',{detail:{mode:miniGame.mode,score:miniGame.score,crashes:miniGame.crashes,time:Math.max(0,Math.ceil((miniGame.mode==='sled'?35:30)-miniGame.elapsed)),message}}))}
 function clearMiniGame(){
- if(miniGame.group){scene.remove(miniGame.group);miniGame.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose()})}
+ if(miniGame.group){scene.remove(miniGame.group);miniGame.group.traverse(o=>{o.geometry?.dispose()})}
  miniGame.group=null;miniGame.obstacles=[];miniGame.targets=[];miniGame.projectiles=[];miniGame.mode=null;
 }
 function endMiniGame(message){
