@@ -300,37 +300,37 @@ function updateTreeFinale(now,dt){
   ch.userData.body.position.y=0;
  });
 
- // A clear, unhurried handoff: both characters face one another and hold the sack between them.
- const offer=smooth(clamp((e-7.1)/2.8,0,1));
- const receive=smooth(clamp((e-10.1)/2.4,0,1));
- const sackStart=new THREE.Vector3(-4.72,1.22,-8.02);
- const sackMid=new THREE.Vector3(-3.98,1.38,-8.02);
- const sackEnd=new THREE.Vector3(-3.22,1.22,-8.02);
+ // Attach the sack to real hand positions throughout the exchange.
+ const twain=player,anto=friends[0].obj;
+ const presenting=e>7.1&&e<12.5,holding=e>=12.5&&e<19.2;
+ twain.userData.arms[1].rotation.set(presenting?-1.12:0,0,presenting?-.12:0);
+ anto.userData.arms[0].rotation.set(e>9.2&&e<19.2?-.98:0,0,e>9.2&&e<19.2?.12:0);
+ anto.userData.arms[1].rotation.set(holding?-.98:0,0,holding?-.12:0);
+ twain.updateMatrixWorld(true);anto.updateMatrixWorld(true);
+ const twainHand=twain.userData.arms[1].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+ const antoHand=anto.userData.arms[0].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+ const antoOther=anto.userData.arms[1].localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+ const sackAt=hand=>hand.clone().add(new THREE.Vector3(0,-1.12,0));
+ const sackStart=sackAt(twainHand),sackMid=sackAt(twainHand.clone().lerp(antoHand,.5));
+ const sackEnd=sackAt(antoHand.clone().lerp(antoOther,.5));
+ const offer=smooth(clamp((e-7.1)/2.8,0,1)),receive=smooth(clamp((e-10.1)/2.4,0,1));
  treeFinale.sack.visible=e<19.2;
  if(e<10.1)treeFinale.sack.position.lerpVectors(sackStart,sackMid,offer);
  else if(e<12.5)treeFinale.sack.position.lerpVectors(sackMid,sackEnd,receive);
  else treeFinale.sack.position.copy(sackEnd);
- treeFinale.sack.rotation.set(0,0,e>7.1&&e<12.5?Math.sin(e*2.2)*.025:0);
- // Twain offers with her inside hand; Anto reaches out with the hand nearest Twain.
- const presenting=e>7.1&&e<12.5;
- player.userData.arms[1].rotation.set(presenting?-.85:0,0,presenting?-.82:0);
- friends[0].obj.userData.arms[0].rotation.set(e>9.2&&e<13.2?-.9:0,0,e>9.2&&e<13.2?1.0:0);
- // Anto takes a moment to look at the gifts before celebrating.
- const holding=e>=12.5&&e<19.2;
- friends[0].obj.userData.arms[0].rotation.set(holding?-.5:0,0,holding?1.0:0);
- friends[0].obj.userData.arms[1].rotation.set(holding?-.5:0,0,holding?-.75:0);
+ treeFinale.sack.rotation.set(0,0,0);
+ // Anto celebrates with a happy bounce while keeping both hands on the gift sack.
  const joy=e>15.2&&e<19.2,joyPulse=joy?Math.max(0,Math.sin((e-15.2)*Math.PI*1.65)):0;
- friends[0].obj.position.y=joyPulse*.9;
- friends[0].obj.userData.legs.forEach((leg,j)=>leg.rotation.x=joy?Math.sin(e*10+j*Math.PI)*.48:0);
- friends[0].obj.userData.arms.forEach((arm,j)=>{if(joy)arm.rotation.set(-1.25,0,j===0?1.05:-1.05)});
- if(e>=19.2){treeFinale.sack.visible=false;friends[0].obj.position.y=0;}
+ anto.position.y=joyPulse*.42;
+ anto.userData.legs.forEach((leg,j)=>leg.rotation.x=joy?Math.sin(e*10+j*Math.PI)*.48:0);
+ if(e>=19.2){treeFinale.sack.visible=false;anto.position.y=0;}
 
  // Let the happiness land before the pair turn back to the tree and prepare the ladders.
  const moveToTree=smooth(clamp((e-21.5)/4.2,0,1));
  chars.forEach((ch,i)=>{
   ch.position.lerpVectors(handoffSpots[i],ladderSpots[i],moveToTree);
   ch.position.y=0;
-  const faceTree=i===0?-.18:.18;
+  const faceTree=Math.PI;
   ch.rotation.y=THREE.MathUtils.lerp(i===0?Math.PI/2:-Math.PI/2,faceTree,moveToTree);
   const gait=e*6.5+i*Math.PI;
   ch.userData.legs.forEach((leg,j)=>leg.rotation.x=e>21.5&&e<25.7?Math.sin(gait+j*Math.PI)*(1-moveToTree)*.3:0);
@@ -349,6 +349,8 @@ function updateTreeFinale(now,dt){
   if(e<29.5){ch.position.copy(ladderSpots[i]);}
   else if(e<38.2)ch.position.set(ladderSpots[i].x,.12+climb*4.75,baseZ-.12-climb*.75);
   else{const down=smooth(clamp((e-38.2)/4.2,0,1));ch.position.set(ladderSpots[i].x,4.87*(1-down),THREE.MathUtils.lerp(baseZ-.87,baseZ+.35,down));}
+  // Keep both climbers squarely facing the ladder as they ascend.
+  ch.rotation.y=Math.PI;
   const stepping=e>29.5&&e<38.2,gait=e*7.2+i*Math.PI;
   ch.userData.legs.forEach((leg,j)=>leg.rotation.x=stepping?Math.sin(gait+j*Math.PI)*.34:0);
   ch.userData.arms.forEach((arm,j)=>arm.rotation.set(stepping?-.95:(e>35.4&&e<38.5?-1.25:0),0,j===0?.12:-.12));
@@ -522,19 +524,31 @@ function updateSantaVisit(now,dt){
   if(e>12)kitten.visible=true;
   if(kitten.visible){kitten.scale.setScalar(.48);const sx=g.position.x+(i-1)*.48,sz=g.position.z-1.5,tx=santaVisit.crowdTargets[1].x+(i-1)*.62,tz=santaVisit.crowdTargets[1].z+.9;kitten.position.set(THREE.MathUtils.lerp(sx,tx,kittenReveal),.05+Math.abs(Math.sin(e*7+i*1.8))*.13+Math.sin(kittenReveal*Math.PI)*.3,THREE.MathUtils.lerp(sz,tz,kittenReveal));kitten.rotation.y=Math.PI}
  });
- // Santa personally hands a present to each villager: Twain, Anto, Viv, Tass and Jordan.
+ // Santa takes each present from the sack, then places it into the recipient's hands.
  const recipients=[player,...friends.map(f=>f.obj)],giftWindows=[[16,20.2],[22,26.2],[28,32.2],[34,38.2],[40,44.2]];
  santaVisit.gifts.forEach((gift,i)=>{
-  const [begin,finish]=giftWindows[i],q=smooth(clamp((e-begin)/2.4,0,1)),recipient=recipients[i],target=santaVisit.crowdTargets[i];
+  const [begin,finish]=giftWindows[i],recipient=recipients[i],active=e>=begin&&e<=finish+0.2;
+  const progress=clamp((e-begin)/2.7,0,1),pickup=smooth(clamp(progress/.34,0,1)),handoff=smooth(clamp((progress-.34)/.66,0,1));
+  const receiving=e>=begin+1.45;
+  if(e>=begin+1.05){
+   recipient.userData.arms.forEach((arm,j)=>arm.rotation.set(-.98,0,j===0?-.14:.14));
+  }
+  recipient.updateMatrixWorld(true);
+  const holdPoint=recipient.localToWorld(new THREE.Vector3(0,1.12,.55)).clone();
+  const sackMouth=g.localToWorld(new THREE.Vector3(0,2.0,-1.2)).clone();
+  const santaArm=santaVisit.santa.userData.arms[1];
+  const santaReceiving=active&&e<begin+2.7;
+  santaArm.rotation.set(santaReceiving?-1.2:0,0,santaReceiving?.28:0);
+  santaVisit.santa.updateMatrixWorld(true);
+  const santaHand=santaArm.localToWorld(new THREE.Vector3(0,-.57,.02)).clone();
+  const giftStart=sackMouth.clone().lerp(santaHand,pickup);
   gift.visible=e>=begin;
-  const from=new THREE.Vector3(g.position.x-.72,2.35,g.position.z+1.25);
-  const to=new THREE.Vector3(target.x+(i%2===0?.55:-.55),1.45,target.z+.22);
-  gift.position.lerpVectors(from,to,q);gift.rotation.set(.08,Math.sin(e*2+i)*.08,.12*(1-q));
-  recipient.userData.arms.forEach((arm,j)=>{const receiving=e>begin+1.5&&e<finish+1.8;arm.rotation.x=receiving?-.9:0;arm.rotation.z=receiving?(j===0?-.48:.48):0});
-  santaVisit.santa.userData.arms[1].rotation.x=e>begin&&e<finish?-1.65:0;
-  santaVisit.santa.userData.arms[1].rotation.z=e>begin&&e<finish?.35:0;
+  if(e<begin+2.7)gift.position.copy(giftStart.lerp(holdPoint,handoff));
+  else gift.position.copy(holdPoint);
+  gift.rotation.set(0,Math.sin(e*1.5+i)*.025,0);
   if(e>=begin&&e<begin+.3&&santaVisit.lastCaption!==3+i){const names=['TWAIN','ANTO','VIV','TASS','JORDAN'];finaleCaption('A GIFT FOR '+names[i],i<2?'For being good this year!':'For being such a wonderful friend!','Santa has a special Christmas present just for you.');santaVisit.lastCaption=3+i}
-  if(e>finish&&e<finish+.3){gift.position.copy(to);recipient.userData.arms.forEach(arm=>arm.rotation.set(0,0,0))}
+  // Once delivered, keep the box in the villager's hands for the group portrait.
+  if(e>begin+2.7)gift.position.copy(holdPoint);
  });
  // Final group portrait: all five villagers, Santa, sleigh and kittens in one frame.
  if(e>=45){camPos=new THREE.Vector3(9.5,10.5,-16.5);look=new THREE.Vector3(0,1.6,-14.4);if(santaVisit.lastCaption!==8){finaleCaption('A VERY MERRY CHRISTMAS','Presents for everyone!','Santa brought a gift for Twain, Anto, Viv, Tass and Jordan.');santaVisit.lastCaption=8}}
