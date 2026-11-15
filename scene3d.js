@@ -643,34 +643,35 @@ function character(coatColor,hatColor,scale=1,style={}){
  sphere(body,0,1.72,0,.39,skin);
  // Distinct silhouettes keep every villager recognizable at a glance.
  const hairStyle=style.hairStyle||(style.hairLong?'long':'short');
- const rearHair=new THREE.Mesh(new THREE.SphereGeometry(.405,22,16),hair);rearHair.scale.set(1.02,1.06,.88);rearHair.position.set(0,1.76,-.17);body.add(rearHair);
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.405,24,16,0,Math.PI*2,0,Math.PI*.56),hair);hairCap.position.set(0,2.025,-.045);body.add(hairCap);
- const addLock=(x,y,z,r,len,rz=0)=>{const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,len,5,8),hair);m.position.set(x,y,z);m.rotation.z=rz;body.add(m);return m};
- if(hairStyle==='twists'){
-  for(let i=0;i<24;i++){const a=i/24*Math.PI*2,x=Math.cos(a)*.325,z=Math.sin(a)*.325;addLock(x,1.43,z,.056,.76,Math.sin(a)*.16);sphere(body,x,.99,z,.058,hair)}
-  for(let i=0;i<7;i++)addLock(-.27+i*.09,1.91,.32,.042,.25,(i-3)*.19);
-  for(let i=0;i<4;i++)addLock(-.25+i*.17,1.35,-.31,.052,.78,(i-1.5)*.09);
- }else if(hairStyle==='afro'){
-  const rounded=new THREE.Mesh(new THREE.SphereGeometry(.44,24,18),hair);rounded.scale.set(1.12,1.02,1.02);rounded.position.set(0,1.99,-.105);body.add(rounded);
-  for(const side of [-1,1]){const sideMass=sphere(body,side*.31,1.66,-.055,.22,hair);sideMass.scale.set(.9,1.18,.92)}
+ const addLock=(x,y,z,r,len,rz=0)=>{const m=new THREE.Mesh(new THREE.CapsuleGeometry(r,len,6,10),hair);m.position.set(x,y,z);m.rotation.z=rz;body.add(m);return m};
+ const backShell=new THREE.Mesh(new THREE.SphereGeometry(.395,24,18),hair);backShell.scale.set(1.04,1.08,.9);backShell.position.set(0,1.76,-.19);body.add(backShell);
+ const crown=new THREE.Mesh(new THREE.SphereGeometry(.405,28,18,0,Math.PI*2,0,Math.PI*.57),hair);crown.position.set(0,2.015,-.055);body.add(crown);
+ if(hairStyle==='afro'){
+  body.remove(backShell);body.remove(crown);
+  const afro=new THREE.Mesh(new THREE.SphereGeometry(.455,32,24),hair);afro.scale.set(1.08,1.02,.94);afro.position.set(0,2.02,-.17);body.add(afro);
+  for(const side of [-1,1]){const puff=sphere(body,side*.34,1.72,-.12,.2,hair);puff.scale.set(.95,1.08,.9)}
  }else if(hairStyle==='bob'){
-  const back=new THREE.Mesh(new THREE.SphereGeometry(.37,16,12),hair);back.scale.set(1.02,1.12,.92);back.position.set(0,1.78,-.12);body.add(back);
-  for(const side of [-1,1])addLock(side*.32,1.62,.03,.105,.4,side*-.12);
-  const fringe=new THREE.Mesh(new THREE.SphereGeometry(.22,14,9),hair);fringe.scale.set(1.15,.2,.35);fringe.position.set(0,1.99,.33);body.add(fringe);
+  const back=new THREE.Mesh(new THREE.SphereGeometry(.39,22,16),hair);back.scale.set(1.05,1.16,.95);back.position.set(0,1.72,-.17);body.add(back);
+  for(const side of [-1,1]){addLock(side*.34,1.53,.04,.12,.48,side*-.06);sphere(body,side*.34,1.3,.05,.12,hair)}
+  const fringe=sphere(body,0,2.015,.285,.2,hair);fringe.scale.set(1.28,.38,.58);
  }else if(hairStyle==='curls'){
-  for(let i=0;i<34;i++){const a=i*2.399,r=i<18?.37:.25,y=i<18?2.1:2.31,sz=.085+(i%4)*.012;const curl=sphere(body,Math.cos(a)*r,y+(i%3)*.045,Math.sin(a)*r-.025,sz,hair);curl.scale.set(1,.96,1)}
-  for(const side of [-1,1])addLock(side*.34,1.66,.02,.085,.18,side*-.08);
+  for(let i=0;i<38;i++){const a=i*2.399,r=i<20?.36:.25,y=i<20?2.12:2.29,sz=.078+(i%4)*.014;const curl=sphere(body,Math.cos(a)*r,y+(i%3)*.035,Math.sin(a)*r-.13,sz,hair);curl.scale.set(1,.98,1)}
+  for(const side of [-1,1])addLock(side*.35,1.62,-.02,.09,.3,side*-.08);
  }else if(hairStyle==='braids'){
-  for(const side of [-1,1]){addLock(side*.3,1.83,-.02,.13,.28,side*-.1);for(let j=0;j<9;j++){const bead=sphere(body,side*(.33+(j%2)*.035),1.57-j*.105,.1,.078,hair);bead.scale.set(.92,1.18,.9)}sphere(body,side*.34,.69,.1,.075,mat(style.hairTie||0xe8c98c))}
-  const fringe=new THREE.Mesh(new THREE.SphereGeometry(.21,14,9),hair);fringe.scale.set(1.1,.18,.32);fringe.position.set(0,1.99,.33);body.add(fringe);
+  for(const side of [-1,1]){
+   addLock(side*.31,1.79,-.04,.12,.34,side*-.08);
+   for(let j=0;j<9;j++){const y=1.55-j*.105,bead=sphere(body,side*(.33+(j%2)*.025),y,.12,.073,hair);bead.scale.set(.95,1.16,.95)}
+   sphere(body,side*.34,.63,.12,.075,mat(style.hairTie||0xe8c98c));
+  }
+  const fringe=sphere(body,0,2.015,.29,.19,hair);fringe.scale.set(1.2,.3,.55);
  }else if(hairStyle==='long'){
-  const back=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.78,6,9),hair);back.position.set(0,1.4,-.28);body.add(back);
-  for(const side of [-1,1]){addLock(side*.32,1.46,-.02,.095,.62,side*-.05);addLock(side*.34,1.43,.2,.075,.58,side*-.04)}
-  const fringe=new THREE.Mesh(new THREE.SphereGeometry(.2,14,9),hair);fringe.scale.set(1.1,.17,.3);fringe.position.set(0,1.99,.33);body.add(fringe);
+  const curtain=new THREE.Mesh(new THREE.SphereGeometry(.34,20,16),hair);curtain.scale.set(1.15,1.42,.55);curtain.position.set(0,1.49,-.22);body.add(curtain);
+  for(const side of [-1,1]){addLock(side*.34,1.48,.015,.105,.72,side*-.04);addLock(side*.34,1.38,.17,.075,.62,side*-.04)}
+  const fringe=sphere(body,0,2.015,.29,.18,hair);fringe.scale.set(1.15,.28,.55);
  }else{
-  for(const side of [-1,1])addLock(side*.35,1.7,.02,.065,.19,side*-.08);
-  for(let i=0;i<7;i++){const a=i*2.399,curl=sphere(body,Math.cos(a)*.2,2.12+(i%2)*.035,Math.sin(a)*.2-.02,.075,hair);curl.scale.set(1,.8,1)}
-  const fringe=new THREE.Mesh(new THREE.SphereGeometry(.19,14,9),hair);fringe.scale.set(1.15,.16,.3);fringe.position.set(0,1.99,.33);body.add(fringe);
+  for(const side of [-1,1])addLock(side*.35,1.7,.02,.07,.23,side*-.08);
+  for(let i=0;i<9;i++){const a=i*2.399,curl=sphere(body,Math.cos(a)*.2,2.1+(i%2)*.035,Math.sin(a)*.2-.12,.068,hair);curl.scale.set(1,.8,1)}
+  const fringe=sphere(body,0,2.015,.29,.17,hair);fringe.scale.set(1.15,.25,.52);
  }
  // Small personal accessories make the named villagers readable as different people.
  if(style.accessory==='star-clip'){const clip=new THREE.Mesh(new THREE.OctahedronGeometry(.105,0),mat(0xf2cb70));clip.position.set(.31,1.98,.31);clip.scale.set(1,.72,.35);body.add(clip)}
@@ -680,7 +681,7 @@ function character(coatColor,hatColor,scale=1,style={}){
  else if(style.accessory==='glasses'){for(const side of [-1,1]){const lens=new THREE.Mesh(new THREE.TorusGeometry(.105,.022,6,14),mat(0xe5c98c,.5,.3));lens.position.set(side*.125,1.79,.385);body.add(lens)}box(body,0,1.79,.39,.12,.025,.025,mat(0xe5c98c))}
  // Simple eyes only; no beard, moustache, or protruding facial-hair pieces.
  for(const side of [-1,1])sphere(body,side*.125,1.78,.365,.035,boots);
- if(style.hat!==false){const brim=cylinder(body,0,2.36,0,.435,.435,.13,fur);brim.scale.set(1.02,1,1.02);const cap=new THREE.Mesh(new THREE.SphereGeometry(.425,18,12,0,Math.PI*2,0,Math.PI*.56),hat);cap.position.set(0,2.43,-.015);cap.scale.set(1.02,1,1.02);body.add(cap);sphere(body,0,2.82,-.025,.105,fur);}
+ if(style.hat!==false){const brim=cylinder(body,0,2.49,0,.445,.445,.13,fur);brim.scale.set(1.03,1,1.03);const cap=new THREE.Mesh(new THREE.SphereGeometry(.425,20,14,0,Math.PI*2,0,Math.PI*.56),hat);cap.position.set(0,2.56,-.015);cap.scale.set(1.04,1.02,1.04);body.add(cap);sphere(body,0,2.96,-.025,.105,fur);}
  // Tailored outfit details: no two winter coats have the same silhouette.
  const outfit=style.outfit||'classic';
  if(outfit==='longcoat'){box(body,0,1.06,.44,.62,.88,.13,mat(style.trim||0x283b49));box(body,-.2,.91,.52,.035,.52,.025,zipper);box(body,.2,.91,.52,.035,.52,.025,zipper)}
@@ -758,7 +759,7 @@ const cinematicShots=[{p:new THREE.Vector3(0,19,39),l:new THREE.Vector3(0,2,-5)}
 const movementKeys=new Set(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift']);
 addEventListener('keydown',e=>{
  const key=e.key.toLowerCase();
- if(movementKeys.has(key)){keys[key]=true;e.preventDefault();}
+ if(movementKeys.has(key)||key===' '){keys[key]=true;e.preventDefault();}
  if(key==='e'&&started&&cameraMode==='follow'){const spots=[['cabin',-12,-5],['workshop',12,-10],['tree',0,-13],['rink',28,-8],['clocktower',20,15],['lookout',-27,-5],['kittens',-5,-22]];let nearest=null,best=5.5;spots.forEach(p=>{const d=Math.hypot(player.position.x-p[1],player.position.z-p[2]);if(d<best){best=d;nearest={place:p[0]}}});if(!nearest){const names=['ANTO','VIV','TASS','JORDAN'];friends.forEach((f,i)=>{const d=Math.hypot(player.position.x-f.obj.position.x,player.position.z-f.obj.position.z);if(d<2.8&&(!nearest||d<nearest.distance))nearest={place:'npc',name:names[i],distance:d}})}if(nearest)window.dispatchEvent(new CustomEvent('world-interact',{detail:nearest}))}
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
@@ -768,6 +769,7 @@ canvas.style.touchAction='none';
 canvas.style.webkitUserSelect='none';
 canvas.addEventListener('pointerdown',e=>{
  if(e.button!==0)return;
+ if(cameraMode==='miniGame'&&miniGame.mode==='snowball'){throw3DSnowball(e.clientX,e.clientY);return}
  drag=true;dragPointerId=e.pointerId;lastX=e.clientX;lastY=e.clientY;
  try{canvas.setPointerCapture(e.pointerId)}catch(_){}
 });
@@ -792,6 +794,99 @@ document.getElementById('cinematicBtn').addEventListener('click',cinematic);
 document.getElementById('enterWorld').addEventListener('click',()=>{releaseControls();started=true;document.getElementById('introScreen').classList.add('leave');cameraMode='cinema';cinemaStart=performance.now();document.getElementById('sceneHint').textContent='WASD MOVE  •  ARROWS TURN CAMERA  •  HOLD SHIFT TO SPRINT  •  DRAG TO LOOK  •  E TO INTERACT  •  FIND 6 PRESENTS'});
 document.querySelectorAll('[data-place]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.place!=='tree')focusOn(b.dataset.place)}));
 document.getElementById('modeBtn').addEventListener('click',()=>{const day=scene.background.getHex()===0x081827;scene.background.set(day?new THREE.Color(0x9bc6d1):new THREE.Color(0x081827));scene.fog.color.set(day?0xa8d0d4:0x9bb9c5);moon.intensity=day?1.15:2.5;warm.intensity=day?20:65});
+
+
+// Playable 3D festival challenges. Both modes use the actual Three.js world and player character.
+const miniGame={mode:null,group:null,obstacles:[],targets:[],projectiles:[],score:0,crashes:0,elapsed:0,last:0,origin:null,playerX:0,playerZ:0,jump:0,jumpVelocity:0,finished:false};
+const miniRaycaster=new THREE.Raycaster(),miniPointer=new THREE.Vector2();
+function miniStatus(message){window.dispatchEvent(new CustomEvent('winter-minigame-update',{detail:{mode:miniGame.mode,score:miniGame.score,crashes:miniGame.crashes,time:Math.max(0,Math.ceil((miniGame.mode==='sled'?35:30)-miniGame.elapsed)),message}}))}
+function clearMiniGame(){
+ if(miniGame.group){scene.remove(miniGame.group);miniGame.group.traverse(o=>{o.geometry?.dispose();if(o.material&&!Array.isArray(o.material))o.material.dispose()})}
+ miniGame.group=null;miniGame.obstacles=[];miniGame.targets=[];miniGame.projectiles=[];miniGame.mode=null;
+}
+function endMiniGame(message){
+ if(!miniGame.mode||miniGame.finished)return;miniGame.finished=true;
+ const mode=miniGame.mode,score=miniGame.score,crashes=miniGame.crashes;
+ window.dispatchEvent(new CustomEvent('winter-minigame-finished',{detail:{mode,score,crashes,message}}));
+ clearMiniGame();if(miniGame.origin)player.position.copy(miniGame.origin);
+ player.position.y=0;cameraMode='follow';releaseControls();
+ document.getElementById('sceneHint').textContent='WASD MOVE • ARROWS TURN CAMERA • HOLD SHIFT TO SPRINT • DRAG TO LOOK • E TO INTERACT';
+}
+function start3DMinigame(mode){
+ if(!started||!['sled','snowball'].includes(mode))return;
+ releaseControls();clearMiniGame();miniGame.mode=mode;miniGame.score=0;miniGame.crashes=0;miniGame.elapsed=0;miniGame.last=performance.now();miniGame.finished=false;miniGame.origin=player.position.clone();miniGame.group=new THREE.Group();scene.add(miniGame.group);
+ if(mode==='sled'){
+  miniGame.playerX=0;miniGame.playerZ=18;miniGame.jump=0;miniGame.jumpVelocity=0;
+  const track=new THREE.Mesh(new THREE.PlaneGeometry(13,88),mat(0x9db8ba));track.rotation.x=-Math.PI/2;track.position.set(0,.025,-19);miniGame.group.add(track);
+  for(const x of [-6.45,6.45]){const rail=box(miniGame.group,x,.28,-19,.24,.5,88,mat(0x45616a));}
+  const sled=new THREE.Group();box(sled,0,.22,0,1.35,.18,2.15,mat(0x8f303d));box(sled,0,.34,-.12,.12,.08,2.05,gold);
+  for(const x of [-.52,.52]){const runner=cylinder(sled,x,.08,0,.055,.055,2.45,gold);runner.rotation.x=Math.PI/2}
+  miniGame.sled=sled;miniGame.group.add(sled);
+  for(let i=0;i<16;i++){
+   const z=10-i*4.1,lane=[-3.8,0,3.8][(i*7)%3];
+   if(i%4===1){const star=new THREE.Mesh(new THREE.OctahedronGeometry(.38,1),gold);star.position.set(lane,1.25,z);miniGame.group.add(star);miniGame.obstacles.push({mesh:star,type:'star',x:lane,z})}
+   else{const tree=new THREE.Group();const trunk=cylinder(tree,0,.35,0,.16,.2,.7,wood);for(let k=0;k<3;k++)cone(tree,0,.85+k*.62,0,.82-k*.18,1.3,pine);tree.position.set(lane,0,z);miniGame.group.add(tree);miniGame.obstacles.push({mesh:tree,type:'tree',x:lane,z})}
+  }
+  const gate=new THREE.Group();for(const x of [-5.5,5.5])cylinder(gate,x,3,-49,.12,.12,6,gold);box(gate,0,5.8,-49,11.2,.18,.18,red);miniGame.group.add(gate);
+  player.position.set(0,0,18);player.rotation.y=Math.PI;
+  document.getElementById('sceneHint').textContent='SLED RACE • A/D OR ←/→ STEER • SPACE TO JUMP • COLLECT STARS';
+ }else{
+  player.position.set(0,0,15);player.rotation.y=Math.PI;
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(15,48),mat(0x8daeb2));floor.rotation.x=-Math.PI/2;floor.position.set(0,.025,-5);miniGame.group.add(floor);
+  for(let i=0;i<8;i++){
+   const x=(i%4-1.5)*3.5,z=-5-Math.floor(i/4)*8;
+   const stand=cylinder(miniGame.group,x,.8,z,.19,.25,1.6,wood);
+   const target=new THREE.Group();target.position.set(x,1.9,z);
+   const outer=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.16,24),mat(0xf3e9d2));outer.rotation.x=Math.PI/2;target.add(outer);
+   const ring=new THREE.Mesh(new THREE.TorusGeometry(.5,.1,8,24),red);ring.position.z=.1;target.add(ring);
+   const bull=sphere(target,0,0,.16,.22,gold);bull.userData.hitTarget=true;
+   target.userData.bull=bull;miniGame.group.add(target);miniGame.targets.push(target);
+  }
+  document.getElementById('sceneHint').textContent='SNOWBALL FIGHT • TAP A TARGET TO THROW • HIT AS MANY AS YOU CAN';
+ }
+ cameraMode='miniGame';miniStatus(mode==='sled'?'Reach the finish and collect the golden stars.':'Hit the moving targets with snowballs.');
+}
+window.start3DMinigame=start3DMinigame;
+window.stop3DMinigame=()=>endMiniGame('Challenge ended.');
+window.throw3DSnowball=(clientX,clientY)=>{
+ if(miniGame.mode!=='snowball'||miniGame.finished)return;
+ const rect=renderer.domElement.getBoundingClientRect();miniPointer.x=(clientX-rect.left)/rect.width*2-1;miniPointer.y=-(clientY-rect.top)/rect.height*2+1;
+ miniRaycaster.setFromCamera(miniPointer,camera);
+ const direction=miniRaycaster.ray.direction.clone().normalize(),ball=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),snowMat);
+ ball.position.set(player.position.x,1.45,player.position.z-.35);miniGame.group.add(ball);miniGame.projectiles.push({mesh:ball,velocity:direction.multiplyScalar(24).add(new THREE.Vector3(0,1.2,0)),life:2.2});
+};
+function updateMiniGame(now,dt,t){
+ if(!miniGame.mode)return;
+ miniGame.elapsed+=(now-miniGame.last)/1000;miniGame.last=now;
+ if(miniGame.mode==='sled'){
+  const steer=(keys.a||keys.arrowleft?-1:0)+(keys.d||keys.arrowright?1:0);
+  miniGame.playerX=THREE.MathUtils.clamp(miniGame.playerX+steer*dt*8,-5.1,5.1);
+  if(keys[' ']&&miniGame.jump<=.02)miniGame.jumpVelocity=5.8;
+  miniGame.jumpVelocity-=17*dt;miniGame.jump=Math.max(0,miniGame.jump+miniGame.jumpVelocity*dt);if(miniGame.jump===0)miniGame.jumpVelocity=0;
+  miniGame.playerZ-=dt*8.4;player.position.set(miniGame.playerX,miniGame.jump,miniGame.playerZ);player.rotation.y=Math.PI+steer*.12;
+  miniGame.sled.position.set(miniGame.playerX,miniGame.jump*.55,miniGame.playerZ+.25);
+  miniGame.obstacles.forEach(o=>{if(o.mesh.userData.passed)return;if(o.type==='star'&&Math.abs(o.z-miniGame.playerZ)<.9&&Math.abs(o.x-miniGame.playerX)<1){o.mesh.visible=false;o.mesh.userData.passed=true;miniGame.score++;miniStatus('Golden star collected!');}
+   else if(o.type==='tree'&&Math.abs(o.z-miniGame.playerZ)<.8&&Math.abs(o.x-miniGame.playerX)<1.15&&miniGame.jump<.65){o.mesh.userData.passed=true;miniGame.crashes++;miniGame.playerZ+=.8;miniStatus('You clipped a tree!');}
+   else if(o.z-miniGame.playerZ>1.8)o.mesh.userData.passed=true;
+  });
+  if(miniGame.playerZ<=-49){endMiniGame('You crossed the finish line!');return}
+  if(miniGame.crashes>=3){endMiniGame('Three crashes! Try the course again.');return}
+  const cam=new THREE.Vector3(player.position.x,player.position.y+5.4,player.position.z+9.5);camera.position.lerp(cam,.16);camera.lookAt(player.position.x,player.position.y+1,-(miniGame.playerZ<0?Math.min(49,-miniGame.playerZ+7):7));
+  player.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*15+i*Math.PI)*.18);
+  if(miniGame.elapsed>=35){endMiniGame('Time is up!');return}
+ }else{
+  miniGame.targets.forEach((target,i)=>{target.position.y=1.9+Math.sin(t*2.3+i)*.24;target.rotation.y=Math.sin(t*1.4+i)*.18});
+  for(let i=miniGame.projectiles.length-1;i>=0;i--){const p=miniGame.projectiles[i];p.velocity.y-=8*dt;p.mesh.position.addScaledVector(p.velocity,dt);p.life-=dt;let hit=-1;
+   miniGame.targets.forEach((target,j)=>{if(target.visible&&p.mesh.position.distanceTo(target.position.clone().add(new THREE.Vector3(0,0,.15)))<.82)hit=j});
+   if(hit>=0){miniGame.targets[hit].visible=false;miniGame.score++;miniGame.group.remove(p.mesh);miniGame.projectiles.splice(i,1);miniStatus('Bullseye!');continue}
+   if(p.life<=0||p.mesh.position.y<0){miniGame.group.remove(p.mesh);miniGame.projectiles.splice(i,1);miniGame.crashes++}
+  }
+  const cam=new THREE.Vector3(0,6.5,24);camera.position.lerp(cam,.12);camera.lookAt(0,1,-8);
+  if(miniGame.targets.every(x=>!x.visible)){endMiniGame('Every target cleared!');return}
+  if(miniGame.elapsed>=30){endMiniGame('Time is up!');return}
+ }
+ miniStatus();
+}
 
 let lastRender=0;const targetFrame=1000/(lowEndDevice?30:60);function animate(now=0){requestAnimationFrame(animate);if(document.visibilityState!=='visible'||now-lastRender<targetFrame)return;const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
 hiddenGifts.forEach((g,i)=>{if(!g.visible)return;g.rotation.y+=dt*.8;g.position.y=g.userData.baseY+Math.sin(t*2.1+i)*.1;if(started&&player.position.distanceTo(g.position)<1.45)collectGift(g)});
@@ -853,7 +948,7 @@ if(canControl){
   player.position.set(tryX,0,tryZ);player.rotation.y=Math.atan2(move.x,move.z);
  }
 }
-if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='santaVisit'){updateSantaVisit(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
+if(cameraMode==='miniGame'){updateMiniGame(now,dt,t)}else if(cameraMode==='treeFinale'){updateTreeFinale(now,dt)}else if(cameraMode==='santaVisit'){updateSantaVisit(now,dt)}else if(cameraMode==='cinema'){const elapsed=(performance.now()-cinemaStart)/1000;const segment=Math.min(Math.floor(elapsed/2.7),cinematicShots.length-1),q=Math.min((elapsed-segment*2.7)/2.7,1),smooth=q*q*(3-2*q),from=cinematicShots[segment],to=cinematicShots[Math.min(segment+1,cinematicShots.length-1)];camera.position.lerpVectors(from.p,to.p,smooth);cinemaLook.lerpVectors(from.l,to.l,smooth);camera.lookAt(cinemaLook);if(elapsed>=cinematicShots.length*2.7){cameraMode='follow';}}
 else if(cameraMode==='treeStudio'){const studioDistance=mobileDevice?10.5:9.5;desiredCamera.set(Math.sin(yaw)*studioDistance,4.5+pitch*2.4,-13+Math.cos(yaw)*studioDistance);camera.position.lerp(desiredCamera,.12);camera.lookAt(0,3,-13)}
 else if(cameraMode==='focus'){const q=Math.min((performance.now()-focusStart)/1300,1),s=q*q*(3-2*q);camera.position.lerpVectors(focusFrom,focusTo,s);camera.lookAt(focusLook);if(q>=1)cameraMode='follow'}
 else{desiredCamera.set(player.position.x+Math.sin(yaw)*11,player.position.y+7+pitch*5,player.position.z+Math.cos(yaw)*11);camera.position.lerp(desiredCamera,1-Math.pow(.001,dt));lookTarget.set(player.position.x,1.5,player.position.z);cameraTarget.lerp(lookTarget,.08);camera.lookAt(cameraTarget)}
