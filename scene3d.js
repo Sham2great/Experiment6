@@ -115,7 +115,7 @@ function house(x,z,scale=1,kind='cabin',rotation=0){
 house(-12,-5,1.12,'cabin',-.16);house(12,-10,.95,'shop',Math.PI*.92);house(20,6,.65,'cabin',-.65);house(-22,2,.72,'shop',.55);house(18,-23,.8,'cabin',Math.PI);house(-19,-24,.7,'cabin',-.3);
 // Extra little homes form lived-in side streets rather than a ring of empty snow.
 house(-30,14,.72,'blue',.48);house(15,27,.8,'green',Math.PI);house(31,8,.7,'cabin',-Math.PI/2);house(-32,-9,.76,'shop',Math.PI/2);house(27,-27,.68,'cabin',2.7);house(-13,30,.68,'green',-.3);house(4,34,.65,'blue',Math.PI);
-makeTree(-34,-22,1.4);makeTree(-36,10,1.05);makeTree(35,-27,1.4);makeTree(38,13,1.1);makeTree(-10,-36,1.2);makeTree(10,-37,1.1);
+makeTree(-43,-17,1.4);makeTree(-36,10,1.05);makeTree(35,-27,1.4);makeTree(38,13,1.1);makeTree(-10,-36,1.2);makeTree(10,-37,1.1);
 
 // Tiny farm details beside the outer cottages: stacked straw bales, twine and a little snow.
 function hayStack(x,z,rotation=0){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);const straw=mat(0xb99a55),twine=mat(0x6f5935);for(let row=0;row<2;row++)for(let i=0;i<2-row;i++){const b=box(g,(i-(1-row)*.5)*.92,.42+row*.78,0,.98,.78,.78,straw);b.rotation.z=(i+row)%2?.035:-.025;for(const side of [-1,1]){const band=box(g,b.position.x+side*.27,b.position.y,.405,.045,.8,.025,twine);band.rotation.z=b.rotation.z}}solidObstacles.push({x,z,hx:1.1,hz:.75});return g}
@@ -220,7 +220,7 @@ function towerLights(tower,w,h){for(let y=1.1;y<h;y+=.72)for(const side of [-1,1
 towerLights(clockTower,1.72,6.8);towerLights(lookoutTower,.95,6.3);
 // A few evergreens wear their own delicate spiral of warm fairy lights.
 function treeLightSpiral(x,z,size){for(let i=0;i<22;i++){const q=i/21,y=(.48+q*2.05)*size,r=(.78-q*.43)*size,a=q*Math.PI*7;const color=i%4===0?0x8be2c2:0xffd27b;const bulb=new THREE.Mesh(new THREE.SphereGeometry(.052*size,7,6),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.8}));bulb.position.set(x+Math.cos(a)*r,y,z+Math.sin(a)*r);scene.add(bulb)}}
-treeLightSpiral(-34,-22,1.4);treeLightSpiral(35,-27,1.4);treeLightSpiral(38,13,1.1);
+treeLightSpiral(-43,-17,1.4);treeLightSpiral(35,-27,1.4);treeLightSpiral(38,13,1.1);
  // A little village-square snowman can be dressed up in the afterglow activity.
 const villageSnowman=new THREE.Group();villageSnowman.position.set(4,0,-4);scene.add(villageSnowman);
 sphere(villageSnowman,0,.62,0,.62,snowMat);sphere(villageSnowman,0,1.42,0,.43,snowMat);
