@@ -200,7 +200,8 @@ function placeCollectibleGift(x,z,color){
 }
 // Six presents are guaranteed: random placement first, deterministic safe positions if needed.
 const giftColors=[0x9e4547,0x236052,0x315c71,0x78608c,0xb8793f,0x8c536d],giftSpots=[];
-function hitsHouseForGift(x,z){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+1.5&&Math.abs(z-o.z)<o.hz+1.5)}
+// Keep presents well clear of house roofs, walls, and market stalls so none can spawn indoors or get hidden behind a structure.
+function hitsHouseForGift(x,z){return solidObstacles.some(o=>Math.abs(x-o.x)<o.hx+2.8&&Math.abs(z-o.z)<o.hz+2.8)}
 function giftSpotIsSafe(x,z,minGap=7.1){
  return x>=-29&&x<=29&&z>=-30&&z<=24&&!hitsHouseForGift(x,z)&&
  Math.hypot(x,z-12)>=7&&Math.hypot(x,z+13)>=5.8&&Math.hypot(x-28,z+8)>=7.2&&
